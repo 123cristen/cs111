@@ -75,6 +75,7 @@ rm "$b"
 rm "$c"
 
 exit 0
+
 ########################################## ##################### ##################### 
 #
 #    Kim's tests for the flags
@@ -92,3 +93,9 @@ exit 0
 #for directory
 # emacs a (gibberish) 
 # ./simpsh --directory --rdonly a --creat --trunc --wronly b --creat --wronly c --command 0 1 2 cat - - 
+
+
+# test for pipe: create a, b, c in advance
+# --rdonly a --wronly b --wronly c --pipe --command 0 4 2 cat - - --command 3 1 2 cat - -
+
+

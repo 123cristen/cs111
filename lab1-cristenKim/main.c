@@ -350,18 +350,26 @@ int main(int argc, char **argv) {
       
     case 'z':  { // wait
       int status;
-      //wait any child process to finish. 0 is for blocking.
-      pid_t returnedPid = waitpid(WAIT_ANY, &status, 0);
-      //WEXITSTATUS returns the exit status of the child.
-      int waitStatus = WEXITSTATUS(status);
-      printf("%d ", waitStatus);
-      if (waitStatus > exit_status) {
-        exit_status = waitStatus;
+      
+      while (1) {
+        //wait any child process to finish. 0 is for blocking.
+        pid_t returnedPid = waitpid(WAIT_ANY, &status, 0);
+        // break loop if returnedPID is not valid
+        if (returnedPid == ECHILD) {
+          break;
+        }
+        //WEXITSTATUS returns the exit status of the child.
+        int waitStatus = WEXITSTATUS(status);
+        printf("%d ", waitStatus);
+        if (waitStatus > exit_status) {
+          exit_status = waitStatus;
+        }
+        for (j = 0; j < args_array_cur-1; j++) {
+          printf("%s ", args_array[j]);
+        }
+        printf("\n");
       }
-      for (j = 0; j < args_array_cur-1; j++) {
-        printf("%s ", args_array[j]);
-      }
-      printf("\n");
+
       break;
     }
      
