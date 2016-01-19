@@ -128,16 +128,32 @@ int main(int argc, char **argv) {
   // Verbose can be on or off, automatically set to off
   int verbose = 0;
 
+  // array of flags when opening a file 
+  int fileflags[11] = {0};
+
+
   // Parse options
   while (1) {
     int option_index = 0;
     static struct option long_options[] = {
     	// { "name",      has_arg,         *flag, val }
-        {"rdonly",      required_argument,  0,  'r' },
-        {"wronly",      required_argument,  0,  'w' },
+        {"rdonly",      required_argument,  0,  'r' }, 
+        {"wronly",      required_argument,  0,  'w' }, 
         {"command",     required_argument,  0,  'c' },
         {"verbose",     no_argument,        0,  'v' },
-        {"wait",        no_argument,        0,  'z'}
+        {"wait",        no_argument,        0,  'z' },
+        {"append",      no_argument,        0,  'a' }, // fileflags[0]
+        {"cloexec",     no_argument,        0,  'l' }, // fileflags[1]
+        {"creat",       no_argument,        0,  't' }, // fileflags[2]
+        {"directory",   no_argument,        0,  'd' }, // fileflags[3]
+        {"dsync",       no_argument,        0,  'y' }, // fileflags[4]
+        {"excl",        no_argument,        0,  'x' }, // fileflags[5]
+        {"nofollow",    no_argument,        0,  'n' }, // fileflags[6]
+        {"nonblock",    no_argument,        0,  'b' }, // fileflags[7]
+        {"rsync",       no_argument,        0,  'e' }, // fileflags[8]
+        {"sync",        no_argument,        0,  's' }, // fileflags[9]
+        {"trunc",       no_argument,        0,  'u' },  // fileflags[10]
+        {"rdwr",        no_argument,        0,  'g' }  
     };
 
     // get the next option
@@ -154,12 +170,53 @@ int main(int argc, char **argv) {
 
     switch (c) {
     
+    case 'a': // append fileflags[0]
+      fileflags[0] = O_APPEND;
+      break;
+    case 'l': //cloexec fileflags[1]
+      fileflags[1] = O_CLOEXEC;
+      break;
+    case 't': //creat fileflags[2]
+      fileflags[2] = O_CREAT;
+      break;
+    case 'd': // directory fileflags[3]
+      fileflags[3] = O_DIRECTORY;
+      break;
+    case 'y': // dsync fileflags[4]
+      fileflags[4] = O_DSYNC;
+      break;
+    case 'x': //excl fileflags[5]
+      fileflags[5] = O_EXCL;
+      break;
+    case 'n': // nofollow fileflags[6]
+      fileflags[6] = O_NOFOLLOW;
+      break;
+    case 'b': //nonblock fileflags[7]
+      fileflags[7] = O_NONBLOCK;
+      break;
+    case 'e': //rsync fileflags[8]
+      fileflags[8] = O_RSYNC;
+      break;
+    case 's': //sync fileflags[9]
+      fileflags[9] = O_SYNC;
+      break;
+    case 'u': //trunc fileflags[10]
+      fileflags[10] = O_TRUNC;
+      break;
+    
+
     case 'r': // read only 
     case 'w': // write only
+    case 'g':
    		// assign oflag
       if (c == 'r') 	oflag = O_RDONLY;
-   		else 			oflag = O_WRONLY;
-      
+   		else if (c == 'w')		oflag = O_WRONLY;
+      else  oflag = O_RDWR;
+
+      //oflag argument of open is a bitwise "or" of all O_flags, which we've saved in fileflags.
+      oflag = oflag | fileflags[0] | fileflags[1] | fileflags[2] | fileflags[3] | fileflags[4] | fileflags[5]
+              | fileflags[6] | fileflags[7] | fileflags[8] | fileflags[9] | fileflags[10];
+
       // find all arguments for the current flag
       optind = findArgs(args_array, args_array_size, optind, &args_array_cur,
                         argc, argv);
