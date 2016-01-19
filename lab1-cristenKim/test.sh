@@ -89,3 +89,6 @@ exit 0
 #emacs a (write gibberish)
 # ./simpsh --rdonly a --append --wronly b --wronly c  --command 0 1 2 cat - - --command 0 1 2 cat - - 
 
+#for directory
+# emacs a (gibberish) 
+# ./simpsh --directory --rdonly a --creat --trunc --wronly b --creat --wronly c --command 0 1 2 cat - - 

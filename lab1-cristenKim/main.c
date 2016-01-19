@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
         {"wronly",      required_argument,  0,  'w' }, 
         {"command",     required_argument,  0,  'c' },
         {"verbose",     no_argument,        0,  'v' },
-
+      
         {"wait",        no_argument,        0,  'z' },
         {"append",      no_argument,        0,  'a' }, // fileflags[0]
         {"cloexec",     no_argument,        0,  'l' }, // fileflags[1]
