@@ -76,3 +76,6 @@ rm "$c"
 
 exit 0
 
+# emacs a (write gibberish)
+# ./simpsh --trunc --wronly a, check that a is now empty aka truncated
+

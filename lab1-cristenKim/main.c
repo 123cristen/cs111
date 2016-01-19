@@ -42,6 +42,7 @@ ERROR CHECKING
 - pipe ends called in wrong order? runs correctly, should it print an error?
 - test different O_flags
 - O_RSYNC flag vs O_SYNC flag 
+- creat rdonly and wronly both create rdonlys
 ******************************************************************************/
 
 // Check if a file descriptor is valid
