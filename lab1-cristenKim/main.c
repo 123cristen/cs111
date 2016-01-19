@@ -40,6 +40,8 @@ difficult options:
 
 ERROR CHECKING
 - pipe ends called in wrong order? runs correctly, should it print an error?
+- test different O_flags
+- O_RSYNC flag vs O_SYNC flag 
 ******************************************************************************/
 
 // Check if a file descriptor is valid
@@ -199,7 +201,7 @@ int main(int argc, char **argv) {
       fileflags[7] = O_NONBLOCK;
       break;
     case 'e': //rsync fileflags[8]
-      fileflags[8] = O_RSYNC;
+      fileflags[8] = O_SYNC;
       break;
     case 's': //sync fileflags[9]
       fileflags[9] = O_SYNC;
