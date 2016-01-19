@@ -75,7 +75,17 @@ rm "$b"
 rm "$c"
 
 exit 0
+########################################## ##################### ##################### 
+#
+#    Kim's tests for the flags
+#
+###################### ##################### ##################### ##################### 
 
+# for truncate
 # emacs a (write gibberish)
 # ./simpsh --trunc --wronly a, check that a is now empty aka truncated
+
+#for append
+#emacs a (write gibberish)
+# ./simpsh --rdonly a --append --wronly b --wronly c  --command 0 1 2 cat - - --command 0 1 2 cat - - 
 
