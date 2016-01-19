@@ -12,6 +12,34 @@ See README for further information
 #include <sys/wait.h>
 #include <sys/types.h>
 
+/*********************************************************************************
+TO DO LIST
+- file flags
+- pipes
+- update verbose
+difficult options:
+- wait          // wait for all commands to finish. As each finishes, output its
+                  exit status, and a copy of the command (with spaces separating
+                  arguments) to the standard output.
+- close N       // close the Nth file that was opened by a file-opening option. 
+                  For a pipe, this closes just one end of the pipe. Once file N
+                  is closed, it is an error to access it, just as it is an error
+                  to access any file number that has never been opened. File numbers
+                  are not reused by later file-opening options.
+- abort         // crash the shell. The shell itself should immediately dump core
+                  via a segmentation violation
+- catch N       // catch signal N, where N is a decimal integer, with a handler
+                  that outputs the diagnostic "N caught" to stderr, and exits with
+                  status N. This exits the entire shell. N uses the same numbering as
+                  your system; for example, on GNU/Linux, a segmentation violation is
+                  signal 11.
+- ignore N      // ignore signal N
+- default N     // use default behavior for signal N
+- pause         // waiting for signal to arrive
+
+
+******************************************************************************/
+
 // Check if a file descriptor is valid
 int validFd(int fd, int fd_array_cur){
 	if( fd >= fd_array_cur){	
