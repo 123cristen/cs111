@@ -14,9 +14,10 @@ See README for further information
 
 /*********************************************************************************
 TO DO LIST
-- file flags
+- file flags: remember rdwr and pipe!
 - pipes
 - update verbose
+
 difficult options:
 - wait          // wait for all commands to finish. As each finishes, output its
                   exit status, and a copy of the command (with spaces separating
