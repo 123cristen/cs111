@@ -76,3 +76,6 @@ rm "$c"
 
 exit 0
 
+# test for pipe
+# --rdonly a --wronly b --wronly c --pipe --command 0 4 2 cat - - --command 3 1 2 cat - -
+
