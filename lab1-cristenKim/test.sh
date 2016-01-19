@@ -76,6 +76,6 @@ rm "$c"
 
 exit 0
 
-# test for pipe
+# test for pipe: create a, b, c in advance
 # --rdonly a --wronly b --wronly c --pipe --command 0 4 2 cat - - --command 3 1 2 cat - -
 
