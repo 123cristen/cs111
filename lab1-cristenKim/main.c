@@ -38,7 +38,8 @@ difficult options:
 - default N     // use default behavior for signal N
 - pause         // waiting for signal to arrive
 
-
+ERROR CHECKING
+- pipe ends called in wrong order? runs correctly, should it print an error?
 ******************************************************************************/
 
 // Check if a file descriptor is valid
@@ -137,7 +138,8 @@ int main(int argc, char **argv) {
         {"wronly",      required_argument,  0,  'w' },
         {"command",     required_argument,  0,  'c' },
         {"verbose",     no_argument,        0,  'v' },
-        {"wait",        no_argument,        0,  'z'}
+        {"wait",        no_argument,        0,  'z'},
+        {"pipe",        no_argument,        0,  'p'}
     };
 
     // get the next option
@@ -193,7 +195,7 @@ int main(int argc, char **argv) {
       fd_array_cur++;
       break;   
       
-      case 'c': { // command (format: --command i o e cmd args_array)
+    case 'c': { // command (format: --command i o e cmd args_array)
       int i, o, e; // stdin, stdout, stderr
 
       //store the file descripter numbers and check for errors
@@ -256,12 +258,35 @@ int main(int argc, char **argv) {
       }
       break;
     }
+
+    case 'p': { // pipe
+      int fd[2];
+      int i;
+
+      int val = pipe(fd);
+      if (val < 0) {
+        fprintf(stderr, "Error: pipe could not be opened\n");
+        exit_status = 1;
+        continue;
+      }
+
+      // save file descriptors to array
+      for (i =0; i < 2; i++) {
+        if (fd_array_cur == fd_array_size) {
+          fd_array_size *= 2;
+          fd_array = (int*)realloc((void*)fd_array, fd_array_size); 
+        }
+        fd_array[fd_array_cur] = fd[i];
+        fd_array_cur++;
+      }
+      break;
+    }
      
     case 'v': // verbose
       verbose = 1;
       break;
       
-    case 'z': {
+    case 'z':  { // wait
       int status;
       //wait any child process to finish. 0 is for blocking.
       pid_t returnedPid = waitpid(WAIT_ANY, &status, 0);
