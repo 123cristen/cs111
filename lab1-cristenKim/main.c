@@ -11,7 +11,7 @@ See README for further information
 #include <ctype.h>
 #include <sys/wait.h>
 #include <sys/types.h>
-
+#define _GNU_SOURCE 
 /*********************************************************************************
 TO DO LIST
 - file flags: remember rdwr and pipe!
