@@ -12,11 +12,11 @@ See README for further information
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <errno.h>
+
 #define _GNU_SOURCE 
 /*********************************************************************************
 TO DO LIST
-- file flags: remember rdwr and pipe!
-- pipes
+
 - update verbose
 
 difficult options:
@@ -214,7 +214,7 @@ int main(int argc, char **argv) {
       fileflags[7] = O_NONBLOCK;
       break;
     case 'e': //rsync fileflags[8]
-      fileflags[8] = O_SYNC;
+      fileflags[8] = O_RSYNC;
       break;
     case 's': //sync fileflags[9]
       fileflags[9] = O_SYNC;
