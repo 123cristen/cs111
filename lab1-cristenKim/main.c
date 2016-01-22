@@ -11,6 +11,7 @@ See README for further information
 #include <ctype.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <errno.h>
 #define _GNU_SOURCE 
 /*********************************************************************************
 TO DO LIST
@@ -111,6 +112,14 @@ int findArgs(char** args_array, size_t args_array_size,
   return index;
 }
 
+// checks if a logical file descriptor is a pipe
+int isPipe(int fd, int * pipes, int size_of_pipes_arr) {
+  for (int j = 0; j < size_of_pipes_arr; j++) {
+    if (fd == pipes[j]) return 1;
+  }
+  return 0;
+}
+
 int main(int argc, char **argv) {
   // c holds return value of getopt_long
   int c;
@@ -135,6 +144,10 @@ int main(int argc, char **argv) {
   // array of flags when opening a file 
   int fileflags[11] = {0};
 
+  // array of logical file descriptor numbers that are part of a pipe
+  size_t num_pipe_fd = 2;
+  int pipes_cur = 0;
+  int * pipes = malloc(num_pipe_fd*sizeof(int));
 
   // Parse options
   while (1) {
@@ -165,7 +178,6 @@ int main(int argc, char **argv) {
 
     // get the next option
     c = getopt_long(argc, argv, "", long_options, &option_index);
-   
     // break when there are no further options to parse
     if (c == -1)
       break;
@@ -214,7 +226,7 @@ int main(int argc, char **argv) {
 
     case 'r': // read only 
     case 'w': // write only
-    case 'g':
+    case 'g': {
    		// assign oflag
       if (c == 'r') 	oflag = O_RDONLY;
    		else if (c == 'w')		oflag = O_WRONLY;
@@ -254,21 +266,41 @@ int main(int argc, char **argv) {
       	fd_array = (int*)realloc((void*)fd_array, fd_array_size); 
       }
       fd_array[fd_array_cur] = rw_fd;
-      fd_array_cur++;
-      break;   
+      fd_array_cur++; 
       
+      break;
+    }
     case 'c': { // command (format: --command i o e cmd args_array)
       int i, o, e; // stdin, stdout, stderr
 
       //store the file descripter numbers and check for errors
       if (!passChecks(optarg, optind, argc)) { break; }
       i = atoi(optarg);
+      if (isPipe(i, pipes, pipes_cur)) {
+        if (isPipe(i+1, pipes, pipes_cur)) {
+          close(fd_array[i+1]);
+        } 
+        // else error handling if input isn't from read end of pipe
+      }
       
       if (!passChecks(argv[optind], optind, argc)) { break; }
       o = atoi(argv[optind]); optind++;
-      
+      if (isPipe(i, pipes, pipes_cur)) {
+        if (isPipe(i-1, pipes, pipes_cur)) {
+          close(fd_array[i-1]);
+        } 
+        // else error handling if output isn't from write end of pipe
+      }
+
+
       if (!passChecks(argv[optind], optind, argc)) { break; }
       e = atoi(argv[optind]); optind++;
+      if (isPipe(i, pipes, pipes_cur)) {
+        if (isPipe(i-1, pipes, pipes_cur)) {
+          close(fd_array[i-1]);
+        } 
+        // else error handling if output isn't from write end of pipe
+      }
 
       // check if there is the proper number of arguments
       if (optind >= argc) {
@@ -339,6 +371,14 @@ int main(int argc, char **argv) {
           fd_array = (int*)realloc((void*)fd_array, fd_array_size); 
         }
         fd_array[fd_array_cur] = fd[i];
+
+        if (pipes_cur == num_pipe_fd) {
+          num_pipe_fd *= 2;
+          pipes = (int *)realloc((void *) pipes, num_pipe_fd);
+        }
+        pipes[pipes_cur] = fd_array_cur;
+        
+        pipes_cur++;
         fd_array_cur++;
       }
       break;
@@ -349,17 +389,23 @@ int main(int argc, char **argv) {
       break;
       
     case 'z':  { // wait
+      printf("Enter wait\n");
       int status;
-      
+      pid_t returnedPid;
+      int waitStatus;
       while (1) {
-        //wait any child process to finish. 0 is for blocking.
-        pid_t returnedPid = waitpid(WAIT_ANY, &status, 0);
-        // break loop if returnedPID is not valid
-        if (returnedPid == ECHILD) {
+
+        //wait for any child process to finish. 0 is for blocking.
+        returnedPid = waitpid(-1, &status, 0);
+        
+        //WEXITSTATUS returns the exit status of the child.
+        waitStatus= WEXITSTATUS(status);
+        //printf("%d ", returnedPid);
+        // break if no remaining processes to wait for
+        if (returnedPid == -1) {
           break;
         }
-        //WEXITSTATUS returns the exit status of the child.
-        int waitStatus = WEXITSTATUS(status);
+        
         printf("%d ", waitStatus);
         if (waitStatus > exit_status) {
           exit_status = waitStatus;
@@ -369,7 +415,6 @@ int main(int argc, char **argv) {
         }
         printf("\n");
       }
-
       break;
     }
      
@@ -401,6 +446,8 @@ int main(int argc, char **argv) {
 
   // Free file descriptor array
   free(fd_array);
+
+  free(pipes);
 
   // Exit with previously set status
   exit(exit_status);
