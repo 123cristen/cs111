@@ -327,12 +327,12 @@ int main(int argc, char **argv) {
           if (isPipe(i+1, pipes, pipes_cur)) { close(fd_array[i+1]); } 
           // else error handling if input isn't from read end of pipe
         }
-        if (isPipe(i, pipes, pipes_cur)) {
-          if (isPipe(i-1, pipes, pipes_cur)) { close(fd_array[i-1]); } 
+        if (isPipe(o, pipes, pipes_cur)) {
+          if (isPipe(o-1, pipes, pipes_cur)) { close(fd_array[o-1]); } 
           // else error handling if output isn't from write end of pipe
         }
-        if (isPipe(i, pipes, pipes_cur)) {
-          if (isPipe(i-1, pipes, pipes_cur)) { close(fd_array[i-1]); } 
+        if (isPipe(e, pipes, pipes_cur)) {
+          if (isPipe(e-1, pipes, pipes_cur)) { close(fd_array[e-1]); } 
           // else error handling if output isn't from write end of pipe
         }
 
