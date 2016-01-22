@@ -282,20 +282,6 @@ int main(int argc, char **argv) {
       if (!passChecks(argv[optind], optind, argc)) { break; }
       e = atoi(argv[optind]); optind++;
 
-        // close unused pipes
-        if (isPipe(i, pipes, pipes_cur)) {
-          if (isPipe(i+1, pipes, pipes_cur)) { close(fd_array[i+1]); } 
-          // else error handling if input isn't from read end of pipe
-        }
-        if (isPipe(o, pipes, pipes_cur)) {
-          if (isPipe(o-1, pipes, pipes_cur)) { close(fd_array[o-1]); } 
-          // else error handling if output isn't from write end of pipe
-        }
-        if (isPipe(e, pipes, pipes_cur)) {
-          if (isPipe(e-1, pipes, pipes_cur)) { close(fd_array[e-1]); } 
-          // else error handling if output isn't from write end of pipe
-        }
-
       // check if there is the proper number of arguments
       if (optind >= argc) {
         fprintf(stderr, "Error: Invalid number of arguments for --command\n");
@@ -337,6 +323,19 @@ int main(int argc, char **argv) {
 
       if (pid == 0) {   //child process
 
+        // close unused pipes
+        if (isPipe(i, pipes, pipes_cur)) {
+          if (isPipe(i+1, pipes, pipes_cur)) { close(fd_array[i+1]); } 
+          // else error handling if input isn't from read end of pipe
+        }
+        if (isPipe(o, pipes, pipes_cur)) {
+          if (isPipe(o-1, pipes, pipes_cur)) { close(fd_array[o-1]); } 
+          // else error handling if output isn't from write end of pipe
+        }
+        if (isPipe(e, pipes, pipes_cur)) {
+          if (isPipe(e-1, pipes, pipes_cur)) { close(fd_array[e-1]); } 
+          // else error handling if output isn't from write end of pipe
+        }
 
         //redirect stdin to i, stdout to o, stderr to e
         dup2(fd_array[i], 0);
