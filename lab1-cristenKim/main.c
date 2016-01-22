@@ -13,7 +13,8 @@ See README for further information
 #include <sys/types.h>
 #include <errno.h>
 
-#define _GNU_SOURCE 
+#define _GNU_SOURCE
+
 /*********************************************************************************
 TO DO LIST
 
@@ -121,35 +122,27 @@ int isPipe(int fd, int * pipes, int size_of_pipes_arr) {
 }
 
 int main(int argc, char **argv) {
-  // c holds return value of getopt_long
-  int c;
 
-  // j is an iterator for for loops
-  int j;
-
-  // will be updated to 1 if any calls to open fail
-  int exit_status = 0;
-
-  // Declare array to hold file descriptors
+  // Array to hold file descriptors
   size_t fd_array_size = 2;
   int fd_array_cur = 0;
   int * fd_array = malloc(fd_array_size*sizeof(int));
 
-  // open flag
-  int oflag;
-
-  // Verbose can be on or off, automatically set to off
-  int verbose = 0;
-
-  // array of flags when opening a file 
-  int fileflags[11] = {0};
-
-  // array of logical file descriptor numbers that are part of a pipe
+  // pipe array of logical file descriptor numbers that are part of a pipe
   size_t num_pipe_fd = 2;
   int pipes_cur = 0;
   int * pipes = malloc(num_pipe_fd*sizeof(int));
 
-  // Parse options
+  // array of flags when opening a file 
+  int fileflags[11] = {0};
+
+  // Verbose can be on or off, automatically set to off
+  int verbose = 0;
+
+  // will be updated as described in the spec
+  int exit_status = 0;
+
+  // Parse and handle options
   while (1) {
     int option_index = 0;
     static struct option long_options[] = {
@@ -177,7 +170,8 @@ int main(int argc, char **argv) {
     };
 
     // get the next option
-    c = getopt_long(argc, argv, "", long_options, &option_index);
+    int c = getopt_long(argc, argv, "", long_options, &option_index);
+    
     // break when there are no further options to parse
     if (c == -1)
       break;
@@ -227,7 +221,11 @@ int main(int argc, char **argv) {
     case 'r': // read only 
     case 'w': // write only
     case 'g': {
-   		// assign oflag
+      
+      // open flag holds all open flags
+      int oflag;
+   		
+      // assign read only, write only, or both
       if (c == 'r') 	oflag = O_RDONLY;
    		else if (c == 'w')		oflag = O_WRONLY;
       else  oflag = O_RDWR;
@@ -236,7 +234,8 @@ int main(int argc, char **argv) {
       oflag = oflag | fileflags[0] | fileflags[1] | fileflags[2] | fileflags[3] | fileflags[4] | fileflags[5]
               | fileflags[6] | fileflags[7] | fileflags[8] | fileflags[9] | fileflags[10];
 
-      // find all arguments for the current flag
+      // find all arguments before the next --. These will be printed if
+              // verbose is enabled, and otherwise will be ignored.
       optind = findArgs(args_array, args_array_size, optind, &args_array_cur,
                         argc, argv);
 
@@ -247,6 +246,7 @@ int main(int argc, char **argv) {
         else flags = "--wronly";
         printf("%s ", flags);
         printf("%s ", optarg);
+        int j;
         for (j = 0; j < args_array_cur; j++) {
           printf("%s ", args_array[j]);
         }
@@ -270,37 +270,17 @@ int main(int argc, char **argv) {
       
       break;
     }
+
     case 'c': { // command (format: --command i o e cmd args_array)
       int i, o, e; // stdin, stdout, stderr
 
       //store the file descripter numbers and check for errors
       if (!passChecks(optarg, optind, argc)) { break; }
       i = atoi(optarg);
-      if (isPipe(i, pipes, pipes_cur)) {
-        if (isPipe(i+1, pipes, pipes_cur)) {
-          close(fd_array[i+1]);
-        } 
-        // else error handling if input isn't from read end of pipe
-      }
-      
       if (!passChecks(argv[optind], optind, argc)) { break; }
       o = atoi(argv[optind]); optind++;
-      if (isPipe(i, pipes, pipes_cur)) {
-        if (isPipe(i-1, pipes, pipes_cur)) {
-          close(fd_array[i-1]);
-        } 
-        // else error handling if output isn't from write end of pipe
-      }
-
-
       if (!passChecks(argv[optind], optind, argc)) { break; }
       e = atoi(argv[optind]); optind++;
-      if (isPipe(i, pipes, pipes_cur)) {
-        if (isPipe(i-1, pipes, pipes_cur)) {
-          close(fd_array[i-1]);
-        } 
-        // else error handling if output isn't from write end of pipe
-      }
 
       // check if there is the proper number of arguments
       if (optind >= argc) {
@@ -327,6 +307,7 @@ int main(int argc, char **argv) {
       // print if verbose
       if (verbose == 1) {
         printf("--command %d %d %d ", i,o,e);
+        int j;
         for (j = 0; j < args_array_cur-1; j++) {
           printf("%s ", args_array[j]);
         }
@@ -337,19 +318,36 @@ int main(int argc, char **argv) {
       if(!(validFd(i,fd_array_cur) && validFd(o,fd_array_cur) && validFd(e,fd_array_cur)))  
         continue;
 
-      // execute command
+      // fork to execute command
       pid_t pid = fork();
-      if(pid == 0){   //child process
+
+      if (pid == 0) {   //child process
+        // close unused pipes
+        if (isPipe(i, pipes, pipes_cur)) {
+          if (isPipe(i+1, pipes, pipes_cur)) { close(fd_array[i+1]); } 
+          // else error handling if input isn't from read end of pipe
+        }
+        if (isPipe(i, pipes, pipes_cur)) {
+          if (isPipe(i-1, pipes, pipes_cur)) { close(fd_array[i-1]); } 
+          // else error handling if output isn't from write end of pipe
+        }
+        if (isPipe(i, pipes, pipes_cur)) {
+          if (isPipe(i-1, pipes, pipes_cur)) { close(fd_array[i-1]); } 
+          // else error handling if output isn't from write end of pipe
+        }
+
         //redirect stdin to i, stdout to o, stderr to e
         dup2(fd_array[i], 0);
         dup2(fd_array[o], 1);
         dup2(fd_array[e], 2);
 
+        // execute process
         execvp(args_array[0], args_array);
         //return to main program if execvp fails
         fprintf(stderr, "Error: Unknown command '%s'\n", args_array[0]);
         exit(255);  
       }
+      // parent process moves to next command
       break;
     }
 
@@ -364,8 +362,8 @@ int main(int argc, char **argv) {
         continue;
       }
 
-      // save file descriptors to array
-      for (i =0; i < 2; i++) {
+      // save file descriptors to fd array and pipe array
+      for (i = 0; i < 2; i++) {
         if (fd_array_cur == fd_array_size) {
           fd_array_size *= 2;
           fd_array = (int*)realloc((void*)fd_array, fd_array_size); 
@@ -389,27 +387,28 @@ int main(int argc, char **argv) {
       break;
       
     case 'z':  { // wait
-      printf("Enter wait\n");
       int status;
       pid_t returnedPid;
       int waitStatus;
-      while (1) {
 
+      while (1) {
         //wait for any child process to finish. 0 is for blocking.
         returnedPid = waitpid(-1, &status, 0);
         
         //WEXITSTATUS returns the exit status of the child.
         waitStatus= WEXITSTATUS(status);
-        //printf("%d ", returnedPid);
+
         // break if no remaining processes to wait for
-        if (returnedPid == -1) {
-          break;
-        }
-        
-        printf("%d ", waitStatus);
+        if (returnedPid == -1) { break; }
+
+        // sets exit status to the maximum of all exit statuses
         if (waitStatus > exit_status) {
           exit_status = waitStatus;
         }
+
+        // print the exit status and arguments of exited process
+        printf("%d ", waitStatus);
+        int j;
         for (j = 0; j < args_array_cur-1; j++) {
           printf("%s ", args_array[j]);
         }
@@ -419,7 +418,6 @@ int main(int argc, char **argv) {
     }
      
     case '?': // ? returns when doesn't recognize option character
-      break;
 
     default:
         fprintf(stderr, "Error: ?? getopt returned character code 0%o ??\n", c);
@@ -444,9 +442,8 @@ int main(int argc, char **argv) {
   	fd_array_cur--;
   }
 
-  // Free file descriptor array
+  // Free file descriptor and pipe array
   free(fd_array);
-
   free(pipes);
 
   // Exit with previously set status
