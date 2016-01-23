@@ -298,6 +298,7 @@ int main(int argc, char **argv) {
     }
 
     case 'o': // close N (closes file descriptor N)
+      if (verbose) { printf("--close %s\n", optarg); }
       if (isDigit(optarg)) {
         int i = atoi(optarg);
         if (i >= fd_array_cur)
