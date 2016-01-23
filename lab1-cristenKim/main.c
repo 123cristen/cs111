@@ -63,16 +63,23 @@ int checkOpenError(int fd) {
   return 0;
 }
 
+int isDigit(char* str) {
+  while (str != NULL && *(str+i) != '\0') {
+    if (!isdigit(*(str+i))) {
+      return 0;
+    }
+    i++;
+  }
+  return 1;
+}
+
 // Checks for --command arguments
 int passChecks(char* str, int index, int num_args) {
   int i = 0;
   // checks if is a digit
-  while (str != NULL && *(str+i) != '\0') {
-    if (!isdigit(*(str+i))) {
-      fprintf(stderr, "Error: Incorrect usage of --command. Requires integer argument.\n");
-      return 0;
-    }
-    i++;
+  if (!isDigit(str)) {
+    fprintf(stderr, "Error: Incorrect usage of --command. Requires integer argument.\n");
+    return 0;
   }
   // checks if is within number of arguments
   if (index >= num_args) {
@@ -290,10 +297,15 @@ int main(int argc, char **argv) {
       break;
     }
 
-    case 'o': { // close N (closes file descriptor N)
-      if (fcntl(fd_array[optarg], F_GETFD) != -1 || errno != EBADF)
-        close(fd_array[optarg]);
-    }
+    case 'o': // close N (closes file descriptor N)
+      if (isDigit(optarg)) {
+        int i = atoi(optarg);
+        if (fcntl(fd_array[i], F_GETFD) != -1 || errno != EBADF)
+          close(fd_array[i]);
+      }
+      else {
+        fprintf(stderr, "Error: Incorrect usage of --close. Requires integer argument.\n");
+      }
 
     case 'c': { // command (format: --command i o e cmd args_array)
       int i, o, e; // stdin, stdout, stderr
