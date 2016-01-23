@@ -19,11 +19,6 @@ See README for further information
 TO DO LIST
 
 difficult options:
-- close N       // close the Nth file that was opened by a file-opening option. 
-                  For a pipe, this closes just one end of the pipe. Once file N
-                  is closed, it is an error to access it, just as it is an error
-                  to access any file number that has never been opened. File numbers
-                  are not reused by later file-opening options.
 - abort         // crash the shell. The shell itself should immediately dump core
                   via a segmentation violation
 - catch N       // catch signal N, where N is a decimal integer, with a handler
@@ -36,6 +31,7 @@ difficult options:
 - pause         // waiting for signal to arrive
 
 ERROR CHECKING
+- test close
 - pipe ends called in wrong order? runs correctly, should it print an error?
 - creat rdonly and wronly both create rdonlys
 ******************************************************************************/
@@ -158,6 +154,7 @@ int main(int argc, char **argv) {
         {"wronly",      required_argument,  0,  'w' }, 
         {"command",     required_argument,  0,  'c' },
         {"verbose",     no_argument,        0,  'v' },
+        {"close",       required_argument,  0,  'o' },
       
         {"wait",        no_argument,        0,  'z' },
         {"append",      no_argument,        0,  'a' }, // fileflags[0]
@@ -234,11 +231,10 @@ int main(int argc, char **argv) {
       if (verbose) { printf("--trunc "); }
       fileflags[10] = O_TRUNC;
       break;
-    
 
     case 'r': // read only 
     case 'w': // write only
-    case 'g': {
+    case 'g': { //read and write
       
       // open flag holds all open flags
       int oflag;
@@ -292,6 +288,11 @@ int main(int argc, char **argv) {
       for (k = 0; k < 11; k++) { fileflags[k] = 0;}
       
       break;
+    }
+
+    case 'o': { // close N (closes file descriptor N)
+      if (fcntl(fd_array[optarg], F_GETFD) != -1 || errno != EBADF)
+        close(fd_array[optarg]);
     }
 
     case 'c': { // command (format: --command i o e cmd args_array)
