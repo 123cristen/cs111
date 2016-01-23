@@ -300,6 +300,8 @@ int main(int argc, char **argv) {
     case 'o': // close N (closes file descriptor N)
       if (isDigit(optarg)) {
         int i = atoi(optarg);
+        if (i >= fd_array_cur)
+          fprintf(stderr, "Error: Bad argument for --close. N must be a valid file descriptor.\n");
         if (fcntl(fd_array[i], F_GETFD) != -1 || errno != EBADF)
           close(fd_array[i]);
       }
