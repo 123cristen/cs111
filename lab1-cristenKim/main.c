@@ -141,6 +141,11 @@ int main(int argc, char **argv) {
   int fd_array_cur = 0;
   int * fd_array = malloc(fd_array_size*sizeof(int));
 
+  // pipe array of logical file descriptor numbers that are part of a pipe
+  size_t num_pipe_fd = 2;
+  int pipes_cur = 0;
+  int * pipes = malloc(num_pipe_fd*sizeof(int));
+
   // array of flags when opening a file 
   int fileflags[11] = {0};
 
@@ -343,6 +348,23 @@ int main(int argc, char **argv) {
       pid_t pid = fork();
 
       if (pid == 0) {   //child process
+        // close unused pipes
+        if (isPipe(i, pipes, pipes_cur)) {
+          if (isPipe(i+1, pipes, pipes_cur)) { 
+            if(fcntl(fd_array[i+1], F_GETFD) != -1 || errno != EBADF;)
+            close(fd_array[i+1]); 
+            fd_array[i+1] = -1;
+          } 
+          // else error handling if input isn't from read end of pipe
+        }
+        if (isPipe(o, pipes, pipes_cur)) {
+          if (isPipe(o-1, pipes, pipes_cur)) { close(fd_array[o-1]); } 
+          // else error handling if output isn't from write end of pipe
+        }
+        if (isPipe(e, pipes, pipes_cur)) {
+          if (isPipe(e-1, pipes, pipes_cur)) { close(fd_array[e-1]); } 
+          // else error handling if output isn't from write end of pipe
+        }
 
         //redirect stdin to i, stdout to o, stderr to e
         dup2(fd_array[i], 0);
@@ -350,11 +372,11 @@ int main(int argc, char **argv) {
         dup2(fd_array[e], 2);
 
         // Close all used file descriptors
-        fd_array_cur--;
-        while (fd_array_cur >= 0) {
-          close(fd_array[fd_array_cur]);
-          fd_array_cur--;
-        }
+        // fd_array_cur--;
+        // while (fd_array_cur >= 0) {
+        //   close(fd_array[fd_array_cur]);
+        //   fd_array_cur--;
+        // }
         
         // execute process
         execvp(args_array[0], args_array);
@@ -379,13 +401,19 @@ int main(int argc, char **argv) {
         continue;
       }
 
-      // save file descriptors to fd array
+      // save file descriptors to fd and pipe array
       for (i = 0; i < 2; i++) {
         if (fd_array_cur == fd_array_size) {
           fd_array_size *= 2;
           fd_array = (int*)realloc((void*)fd_array, fd_array_size); 
         }
         fd_array[fd_array_cur] = fd[i];
+        if (pipes_cur == num_pipe_fd) {
+          num_pipe_fd *= 2;
+          pipes = (int *)realloc((void *) pipes, num_pipe_fd);
+        }
+        pipes[pipes_cur] = fd_array_cur;
+        pipes_cur++;
         fd_array_cur++;
       }
       break;
@@ -463,8 +491,9 @@ int main(int argc, char **argv) {
   	fd_array_cur--;
   }
 
-  // Free file descriptor and command arrays
+  // Free file descriptor, pipes, and command arrays
   free(fd_array);
+  free(pipes);
   free(commands);
 
   // Exit with previously set status
