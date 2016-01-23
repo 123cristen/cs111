@@ -430,7 +430,8 @@ int main(int argc, char **argv) {
           if (commands[j].pid == returnedPid) {
             for (i = commands[j].cmd_start; i < commands[j].cmd_end; i++) {
               printf("%s ", argv[i]);
-            }              
+            }
+            break;              
           } else { j++; }
         }
         printf("\n");
