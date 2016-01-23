@@ -64,6 +64,7 @@ int checkOpenError(int fd) {
 }
 
 int isDigit(char* str) {
+  int i = 0;
   while (str != NULL && *(str+i) != '\0') {
     if (!isdigit(*(str+i))) {
       return 0;
@@ -75,7 +76,6 @@ int isDigit(char* str) {
 
 // Checks for --command arguments
 int passChecks(char* str, int index, int num_args) {
-  int i = 0;
   // checks if is a digit
   if (!isDigit(str)) {
     fprintf(stderr, "Error: Incorrect usage of --command. Requires integer argument.\n");
