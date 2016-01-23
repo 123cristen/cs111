@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
     switch (c) {
     
     case 'a': // append fileflags[0]
-      if (verbose) { printf("%s ", argv[optind-1]); }
+      if (verbose) { printf("--append "); }
       fileflags[0] = O_APPEND;
       break;
     case 'l': //cloexec fileflags[1]
