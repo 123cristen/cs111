@@ -277,7 +277,8 @@ int main(int argc, char **argv) {
       fd_array_cur++;
 
       // reset fileflags
-      fileflags[] = {0};
+      int k;
+      for (k = 0; k < 11; k++) { fileflags[k] = 0;}
       
       break;
     }
