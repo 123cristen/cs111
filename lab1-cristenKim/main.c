@@ -46,6 +46,14 @@ ERROR CHECKING
 - O_RSYNC flag vs O_SYNC flag 
 - creat rdonly and wronly both create rdonlys
 ******************************************************************************/
+// holds the indices for start and end of a command in argv,
+  // so they can be printed out after wait. 
+struct cmd_info {
+  int cmd_start;
+  int cmd_end;
+  pid_t pid;
+}
+
 
 // Check if a file descriptor is valid
 int validFd(int fd, int fd_array_cur){
@@ -122,6 +130,11 @@ int isPipe(int fd, int * pipes, int size_of_pipes_arr) {
 }
 
 int main(int argc, char **argv) {
+
+  // Array to hold commands and info
+  size_t cmd_info_size = 2;
+  int cmd_info_cur = 0;
+  struct cmd_info * commands = malloc(cmd_info_size*sizeof(struct cmd_info));
 
   // Array to hold file descriptors
   size_t fd_array_size = 2;
@@ -286,6 +299,13 @@ int main(int argc, char **argv) {
         break;
       }
 
+      // save command in command_info struct
+      if (cmd_info_cur == cmd_info_size) {
+        cmd_info_size *= 2;
+        commands = (struct cmd_info *)realloc((void *)commands, cmd_info_size*sizeof(struct cmd_info));
+      }
+      commands[cmd_info_cur].cmd_start = optind;
+
       // save command into args array
       args_array[0] = argv[optind]; optind++;
       args_array_cur++;
@@ -293,6 +313,8 @@ int main(int argc, char **argv) {
       // find arguments for command
       optind = findArgs(args_array, args_array_size, optind, &args_array_cur,
                         argc, argv);
+
+      commands[cmd_info_cur].cmd_end = optind;
       
       //append NULL to args_array (necessary for execvp())
       if(args_array_cur == args_array_size){
@@ -339,7 +361,9 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Error: Unknown command '%s'\n", args_array[0]);
         exit(255);  
       }
-      // parent process moves to next command
+      // parent process moves to next command after saving this one
+      commands[cmd_info_cur].pid = pid;
+      cmd_info_cur++;
       break;
     }
 
@@ -387,7 +411,7 @@ int main(int argc, char **argv) {
         returnedPid = waitpid(-1, &status, 0);
         
         //WEXITSTATUS returns the exit status of the child.
-        waitStatus= WEXITSTATUS(status);
+        waitStatus = WEXITSTATUS(status);
 
         // break if no remaining processes to wait for
         if (returnedPid == -1) { break; }
@@ -399,9 +423,14 @@ int main(int argc, char **argv) {
 
         // print the exit status and arguments of exited process
         printf("%d ", waitStatus);
-        int j;
-        for (j = 0; j < args_array_cur-1; j++) {
-          printf("%s ", args_array[j]);
+        int j = 0;
+        int i;
+        while(j < cmd_info_cur) {
+          if (commands[j].pid == returnedPid) {
+            for (i = commands[j].cmd_start; i < commands[j].cmd_end; i++) {
+              printf("%s ", argv[i]);
+            }              
+          } else { j++; }
         }
         printf("\n");
       }
@@ -432,8 +461,9 @@ int main(int argc, char **argv) {
   	fd_array_cur--;
   }
 
-  // Free file descriptor
+  // Free file descriptor and command arrays
   free(fd_array);
+  free(commands);
 
   // Exit with previously set status
   exit(exit_status);
