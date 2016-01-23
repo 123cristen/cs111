@@ -351,18 +351,23 @@ int main(int argc, char **argv) {
         // close unused pipes
         if (isPipe(i, pipes, pipes_cur)) {
           if (isPipe(i+1, pipes, pipes_cur)) { 
-            if(fcntl(fd_array[i+1], F_GETFD) != -1 || errno != EBADF;)
-            close(fd_array[i+1]); 
-            fd_array[i+1] = -1;
+            if (fcntl(fd_array[i+1], F_GETFD) != -1 || errno != EBADF)
+              close(fd_array[i+1]); 
           } 
           // else error handling if input isn't from read end of pipe
         }
         if (isPipe(o, pipes, pipes_cur)) {
-          if (isPipe(o-1, pipes, pipes_cur)) { close(fd_array[o-1]); } 
+          if (isPipe(o-1, pipes, pipes_cur)) { 
+            if (fcntl(fd_array[o-1], F_GETFD) != -1 || errno != EBADF)
+              close(fd_array[o-1]); 
+          } 
           // else error handling if output isn't from write end of pipe
         }
         if (isPipe(e, pipes, pipes_cur)) {
-          if (isPipe(e-1, pipes, pipes_cur)) { close(fd_array[e-1]); } 
+          if (isPipe(e-1, pipes, pipes_cur)) { 
+            if (fcntl(fd_array[e-1], F_GETFD) != -1 || errno != EBADF)
+              close(fd_array[e-1]); 
+          } 
           // else error handling if output isn't from write end of pipe
         }
 
@@ -431,7 +436,8 @@ int main(int argc, char **argv) {
       // Close all used file descriptors
       fd_array_cur--;
       while (fd_array_cur >= 0) {
-        close(fd_array[fd_array_cur]);
+        if (fcntl(fd_array[fd_array_cur], F_GETFD) != -1 || errno != EBADF)
+          close(fd_array[fd_array_cur]);
         fd_array_cur--;
       }
 
@@ -487,7 +493,8 @@ int main(int argc, char **argv) {
   // Close all used file descriptors
   fd_array_cur--;
   while (fd_array_cur >= 0) {
-  	close(fd_array[fd_array_cur]);
+    if (fcntl(fd_array[fd_array_cur], F_GETFD) != -1 || errno != EBADF)
+      close(fd_array[fd_array_cur]);
   	fd_array_cur--;
   }
 
