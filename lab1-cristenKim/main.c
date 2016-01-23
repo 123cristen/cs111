@@ -52,7 +52,7 @@ struct cmd_info {
   int cmd_start;
   int cmd_end;
   pid_t pid;
-}
+};
 
 
 // Check if a file descriptor is valid
@@ -277,7 +277,7 @@ int main(int argc, char **argv) {
       fd_array_cur++;
 
       // reset fileflags
-      fileflags = {0};
+      fileflags[] = {0};
       
       break;
     }
