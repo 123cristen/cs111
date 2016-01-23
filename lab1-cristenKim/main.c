@@ -261,7 +261,10 @@ int main(int argc, char **argv) {
       	fd_array = (int*)realloc((void*)fd_array, fd_array_size); 
       }
       fd_array[fd_array_cur] = rw_fd;
-      fd_array_cur++; 
+      fd_array_cur++;
+
+      // reset fileflags
+      fileflags = {0};
       
       break;
     }
