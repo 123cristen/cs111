@@ -18,12 +18,7 @@ See README for further information
 /*********************************************************************************
 TO DO LIST
 
-- update verbose
-
 difficult options:
-- wait          // wait for all commands to finish. As each finishes, output its
-                  exit status, and a copy of the command (with spaces separating
-                  arguments) to the standard output.
 - close N       // close the Nth file that was opened by a file-opening option. 
                   For a pipe, this closes just one end of the pipe. Once file N
                   is closed, it is an error to access it, just as it is an error
@@ -42,10 +37,9 @@ difficult options:
 
 ERROR CHECKING
 - pipe ends called in wrong order? runs correctly, should it print an error?
-- test different O_flags
-- O_RSYNC flag vs O_SYNC flag 
 - creat rdonly and wronly both create rdonlys
 ******************************************************************************/
+
 // holds the indices for start and end of a command in argv,
   // so they can be printed out after wait. 
 struct cmd_info {
@@ -201,33 +195,43 @@ int main(int argc, char **argv) {
       fileflags[0] = O_APPEND;
       break;
     case 'l': //cloexec fileflags[1]
+      if (verbose) { printf("--cloexec "); }
       fileflags[1] = O_CLOEXEC;
       break;
     case 't': //creat fileflags[2]
+      if (verbose) { printf("--creat "); }
       fileflags[2] = O_CREAT;
       break;
     case 'd': // directory fileflags[3]
+      if (verbose) { printf("--directory "); }
       fileflags[3] = O_DIRECTORY;
       break;
     case 'y': // dsync fileflags[4]
+      if (verbose) { printf("--dsync "); }
       fileflags[4] = O_DSYNC;
       break;
     case 'x': //excl fileflags[5]
+      if (verbose) { printf("--excl "); }
       fileflags[5] = O_EXCL;
       break;
     case 'n': // nofollow fileflags[6]
+      if (verbose) { printf("--nofollow "); }
       fileflags[6] = O_NOFOLLOW;
       break;
     case 'b': //nonblock fileflags[7]
+      if (verbose) { printf("--nonblock "); }
       fileflags[7] = O_NONBLOCK;
       break;
     case 'e': //rsync fileflags[8]
+      if (verbose) { printf("--rsync "); }
       fileflags[8] = O_RSYNC;
       break;
     case 's': //sync fileflags[9]
+      if (verbose) { printf("--sync "); }
       fileflags[9] = O_SYNC;
       break;
     case 'u': //trunc fileflags[10]
+      if (verbose) { printf("--trunc "); }
       fileflags[10] = O_TRUNC;
       break;
     
@@ -257,7 +261,8 @@ int main(int argc, char **argv) {
       if (verbose) {
         char * flags;
         if (c == 'r') flags = "--rdonly";
-        else flags = "--wronly";
+        else if (c == 'w') flags = "--wronly";
+        else flags = "--rdwr";
         printf("%s ", flags);
         printf("%s ", optarg);
         int j;
@@ -397,6 +402,8 @@ int main(int argc, char **argv) {
     }
 
     case 'p': { // pipe
+      if (verbose) { printf("--pipe\n"); }
+
       int fd[2];
       int i;
 
@@ -430,6 +437,7 @@ int main(int argc, char **argv) {
       break;
       
     case 'z':  { // wait
+      if (verbose) { printf("--wait\n"); }
       int status;
       pid_t returnedPid;
       int waitStatus;
