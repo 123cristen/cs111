@@ -309,6 +309,7 @@ int main(int argc, char **argv) {
       else {
         fprintf(stderr, "Error: Incorrect usage of --close. Requires integer argument.\n");
       }
+      break;
 
     case 'c': { // command (format: --command i o e cmd args_array)
       int i, o, e; // stdin, stdout, stderr
