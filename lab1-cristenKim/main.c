@@ -12,7 +12,7 @@ See README for further information
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <errno.h>
-
+#include <signal.h>
 #define _GNU_SOURCE
 
 /*********************************************************************************
@@ -120,7 +120,8 @@ int findArgs(char** args_array, size_t args_array_size,
 
 // checks if a logical file descriptor is a pipe
 int isPipe(int fd, int * pipes, int size_of_pipes_arr) {
-  for (int j = 0; j < size_of_pipes_arr; j++) {
+  int j;
+ for (j = 0; j < size_of_pipes_arr; j++) {
     if (fd == pipes[j]) return 1;
   }
   return 0;
@@ -176,8 +177,9 @@ int main(int argc, char **argv) {
         {"sync",        no_argument,        0,  's' }, // fileflags[9]
         {"trunc",       no_argument,        0,  'u' },  // fileflags[10]
         {"rdwr",        no_argument,        0,  'g' },  
-        {"pipe",        no_argument,        0,  'p'}
-
+        {"pipe",        no_argument,        0,  'p' },
+	{"abort",       no_argument,        0,  'h' }
+	
     };
 
     // get the next option
@@ -237,6 +239,11 @@ int main(int argc, char **argv) {
     case 'u': //trunc fileflags[10]
       if (verbose) { printf("--trunc "); }
       fileflags[10] = O_TRUNC;
+      break;
+    
+    case 'h':
+      if(verbose) { printf("--abort\n"); }
+      raise(SIGSEGV);
       break;
 
     case 'r': // read only 
