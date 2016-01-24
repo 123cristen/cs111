@@ -1,4 +1,4 @@
-/* CS111 Winter 2016 Lab1a
+/* CS111 Winter 2016 Lab 1
 See README for further information
  */
 
