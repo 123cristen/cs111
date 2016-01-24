@@ -12,15 +12,13 @@ See README for further information
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <errno.h>
-
+#include <signal.h>
 #define _GNU_SOURCE
 
 /*********************************************************************************
 TO DO LIST
 
 difficult options:
-- abort         // crash the shell. The shell itself should immediately dump core
-                  via a segmentation violation
 - catch N       // catch signal N, where N is a decimal integer, with a handler
                   that outputs the diagnostic "N caught" to stderr, and exits with
                   status N. This exits the entire shell. N uses the same numbering as
@@ -120,10 +118,17 @@ int findArgs(char** args_array, size_t args_array_size,
 
 // checks if a logical file descriptor is a pipe
 int isPipe(int fd, int * pipes, int size_of_pipes_arr) {
-  for (int j = 0; j < size_of_pipes_arr; j++) {
+  int j;
+ for (j = 0; j < size_of_pipes_arr; j++) {
     if (fd == pipes[j]) return 1;
   }
   return 0;
+}
+
+//implements --catch N for signal( , )
+void catch(int n){
+  fprintf(stderr, "%i",  n);
+  exit(n);
 }
 
 int main(int argc, char **argv) {
@@ -152,6 +157,10 @@ int main(int argc, char **argv) {
   // will be updated as described in the spec
   int exit_status = 0;
 
+  // array to keep track of signals to be ignored
+  // int* ignore_array = malloc(2 * sizeof(int *));
+  //  int ignore_size = 
+
   // Parse and handle options
   while (1) {
     int option_index = 0;
@@ -176,8 +185,10 @@ int main(int argc, char **argv) {
         {"sync",        no_argument,        0,  's' }, // fileflags[9]
         {"trunc",       no_argument,        0,  'u' },  // fileflags[10]
         {"rdwr",        no_argument,        0,  'g' },  
-        {"pipe",        no_argument,        0,  'p'}
-
+        {"pipe",        no_argument,        0,  'p' },
+	{"abort",       no_argument,        0,  'h' },
+	{"default",     required_argument,  0,  'i' },
+	{"catch",       required_argument,  0,  'j' }
     };
 
     // get the next option
@@ -237,6 +248,21 @@ int main(int argc, char **argv) {
     case 'u': //trunc fileflags[10]
       if (verbose) { printf("--trunc "); }
       fileflags[10] = O_TRUNC;
+      break;
+    
+    case 'h':
+      if(verbose) { printf("--abort\n"); }
+      raise(SIGSEGV);
+      break;
+
+    case 'i':
+      if(verbose) {printf("--default %c", optarg);}
+      signal(atoi(optarg), SIG_DFL);
+      break;
+
+    case 'j':
+      if(verbose) {printf("--catch %c", optarg);}
+      signal(atoi(optarg), &catch);
       break;
 
     case 'r': // read only 
