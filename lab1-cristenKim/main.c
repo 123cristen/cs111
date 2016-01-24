@@ -19,8 +19,6 @@ See README for further information
 TO DO LIST
 
 difficult options:
-- abort         // crash the shell. The shell itself should immediately dump core
-                  via a segmentation violation
 - catch N       // catch signal N, where N is a decimal integer, with a handler
                   that outputs the diagnostic "N caught" to stderr, and exits with
                   status N. This exits the entire shell. N uses the same numbering as
@@ -127,6 +125,12 @@ int isPipe(int fd, int * pipes, int size_of_pipes_arr) {
   return 0;
 }
 
+//implements --catch N for signal( , )
+void catch(int n){
+  fprintf(stderr, "%i",  n);
+  exit(n);
+}
+
 int main(int argc, char **argv) {
 
   // Array to hold commands and info
@@ -153,6 +157,10 @@ int main(int argc, char **argv) {
   // will be updated as described in the spec
   int exit_status = 0;
 
+  // array to keep track of signals to be ignored
+  // int* ignore_array = malloc(2 * sizeof(int *));
+  //  int ignore_size = 
+
   // Parse and handle options
   while (1) {
     int option_index = 0;
@@ -178,8 +186,9 @@ int main(int argc, char **argv) {
         {"trunc",       no_argument,        0,  'u' },  // fileflags[10]
         {"rdwr",        no_argument,        0,  'g' },  
         {"pipe",        no_argument,        0,  'p' },
-	{"abort",       no_argument,        0,  'h' }
-	
+	{"abort",       no_argument,        0,  'h' },
+	{"default",     required_argument,  0,  'i' },
+	{"catch",       required_argument,  0,  'j' }
     };
 
     // get the next option
@@ -244,6 +253,16 @@ int main(int argc, char **argv) {
     case 'h':
       if(verbose) { printf("--abort\n"); }
       raise(SIGSEGV);
+      break;
+
+    case 'i':
+      if(verbose) {printf("--default %c", optarg);}
+      signal(atoi(optarg), SIG_DFL);
+      break;
+
+    case 'j':
+      if(verbose) {printf("--catch %c", optarg);}
+      signal(atoi(optarg), &catch);
       break;
 
     case 'r': // read only 
