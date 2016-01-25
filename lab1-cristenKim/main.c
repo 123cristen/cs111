@@ -18,10 +18,9 @@ See README for further information
 /*********************************************************************************
 TO DO LIST
 
-difficult options:
-- pause         // waiting for signal to arrive
-
 ERROR CHECKING
+- catch another signal?
+- close only pipes before waiting
 - test close
 - pipe ends called in wrong order? runs correctly, should it print an error?
 - creat rdonly and wronly both create rdonlys
@@ -163,7 +162,6 @@ int main(int argc, char **argv) {
         {"command",     required_argument,  0,  'c' },
         {"verbose",     no_argument,        0,  'v' },
         {"close",       required_argument,  0,  'o' },
-      
         {"wait",        no_argument,        0,  'z' },
         {"append",      no_argument,        0,  'a' }, // fileflags[0]
         {"cloexec",     no_argument,        0,  'l' }, // fileflags[1]
@@ -175,14 +173,14 @@ int main(int argc, char **argv) {
         {"nonblock",    no_argument,        0,  'b' }, // fileflags[7]
         {"rsync",       no_argument,        0,  'e' }, // fileflags[8]
         {"sync",        no_argument,        0,  's' }, // fileflags[9]
-        {"trunc",       no_argument,        0,  'u' },  // fileflags[10]
+        {"trunc",       no_argument,        0,  'u' }, // fileflags[10]
         {"rdwr",        no_argument,        0,  'g' },  
         {"pipe",        no_argument,        0,  'p' },
-	{"abort",       no_argument,        0,  'h' },
-	{"default",     required_argument,  0,  'i' },
-	{"catch",       required_argument,  0,  'j' },
-	{"ignore",      required_argument,  0,  'k' },
-	{"pause",       no_argument,        0,  'm' }
+      	{"abort",       no_argument,        0,  'h' },
+      	{"default",     required_argument,  0,  'i' },
+      	{"catch",       required_argument,  0,  'j' },
+      	{"ignore",      required_argument,  0,  'k' },
+      	{"pause",       no_argument,        0,  'm' }
     };
 
     // get the next option
@@ -244,30 +242,30 @@ int main(int argc, char **argv) {
       fileflags[10] = O_TRUNC;
       break;
     
-    case 'h':
+    case 'h': // abort
       if(verbose) { printf("--abort\n"); }
       if(!ignore_sigsegv)
-	raise(SIGSEGV);
+        raise(SIGSEGV);
       break;
 
-    case 'i':
+    case 'i': // default
       if(verbose) {printf("--default %c\n", optarg);}
       signal(atoi(optarg), SIG_DFL);
       break;
 
-    case 'j':
+    case 'j': // catch
       if(verbose) {printf("--catch %c\n", optarg);}
       signal(atoi(optarg), &catch);
       break;
       
-    case 'k':
+    case 'k': // ignore
       if(verbose) {printf("--ignore %c\n", optarg);}
       if(atoi(optarg) == 11)
-	ignore_sigsegv = 1;
+        ignore_sigsegv = 1;
       signal(atoi(optarg), SIG_IGN);
       break;
 
-    case 'm':
+    case 'm': // pause
       if(verbose) {printf("--pause\n");}
       pause();
       break;
@@ -431,13 +429,6 @@ int main(int argc, char **argv) {
         dup2(fd_array[i], 0);
         dup2(fd_array[o], 1);
         dup2(fd_array[e], 2);
-
-        // Close all used file descriptors
-        // fd_array_cur--;
-        // while (fd_array_cur >= 0) {
-        //   close(fd_array[fd_array_cur]);
-        //   fd_array_cur--;
-        // }
         
         // execute process
         execvp(args_array[0], args_array);
@@ -539,15 +530,6 @@ int main(int argc, char **argv) {
     // Free arguments array for next command
     free(args_array);
   }
-
-  // Prints out extra options that weren't parsed
- // if (optind < argc) {
- //      printf("non-option ARGV-elements: ");
- //      while (optind < argc)
- //          printf("%s ", argv[optind++]);
- //      printf("\n");
- //  }
-
 
   // Close all used file descriptors
   fd_array_cur--;

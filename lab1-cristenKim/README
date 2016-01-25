@@ -1,18 +1,22 @@
 README
 
 CS 111 Operating Systems Principles, Winter 2016
-Cristen Anderson <904400797> and Sunnie So <704430286>
+Cristen Anderson <904400797> and Kim Svatos <604425426>
 
 Lab 1
 
-This submission is for lab 1a, which is the first part of lab 1.
+This submission is for lab 1B, which is the second part of lab 1. 
+All the options specified will work, except --profile.
 
 It can be built using make, and run using ./simpsh 
 
-We have implemented the --wronly, --rdonly, --command, and 
---verbose flags using the appropriate commands as outlined
-in the specification on the class website. The --wait command
-is in progress but not currently working.
+For our implementation of wait, --wait must be the last option specified because
+it will close all of the pipes, to solve the infinite waiting problem.
+This is not ideal, but the alternative of requiring the user to close the
+correct file descriptors before calling wait is also not ideal. 
+
+We saved the pipe file descriptors in a separate array so that the we could
+close the unused end of the pipe when a child process was forked.
 
 Our testing is in test.sh, which can be invoked using "make check".
 
