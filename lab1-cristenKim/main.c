@@ -22,7 +22,6 @@ ERROR CHECKING
 - redirect stdin, stdout and stderr if 0, 1, 2
 - catch another signal?
 - close only pipes before waiting
-- test close
 ******************************************************************************/
 
 // holds the indices for start and end of a command in argv,
