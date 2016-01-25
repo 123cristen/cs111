@@ -396,15 +396,15 @@ int main(int argc, char **argv) {
       }
 
       //check if i,o,e fd are valid 
-      if(!(validFd(i,fd_array_cur, fd_array)) {
+      if(!(validFd(i,fd_array_cur, fd_array))) {
         fprintf(stderr, "Invalid file descriptor: %d\n", i);
         continue;
       }
-      if(!(validFd(o,fd_array_cur, fd_array)) {
+      if(!(validFd(o,fd_array_cur, fd_array))) {
         fprintf(stderr, "Invalid file descriptor: %d\n", o);
         continue;
       }
-      if(!(validFd(e,fd_array_cur, fd_array)) {
+      if(!(validFd(e,fd_array_cur, fd_array))) {
         fprintf(stderr, "Invalid file descriptor: %d\n", e);
         continue;
       } 
