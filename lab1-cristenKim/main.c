@@ -150,9 +150,8 @@ int main(int argc, char **argv) {
   // will be updated as described in the spec
   int exit_status = 0;
 
-  // array to keep track of signals to be ignored
-  // int* ignore_array = malloc(2 * sizeof(int *));
-  //  int ignore_size = 
+  // flag to see if SIGSEGV is being ignored
+  int ignore_sigsegv = 0; 
 
   // Parse and handle options
   while (1) {
@@ -247,7 +246,8 @@ int main(int argc, char **argv) {
     
     case 'h':
       if(verbose) { printf("--abort\n"); }
-      raise(SIGSEGV);
+      if(!ignore_sigsegv)
+	raise(SIGSEGV);
       break;
 
     case 'i':
@@ -262,6 +262,8 @@ int main(int argc, char **argv) {
       
     case 'k':
       if(verbose) {printf("--ignore %c\n", optarg);}
+      if(atoi(optarg) == 11)
+	ignore_sigsegv = 1;
       signal(atoi(optarg), SIG_IGN);
       break;
 
