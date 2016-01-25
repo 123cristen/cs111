@@ -35,12 +35,12 @@ struct cmd_info {
 
 
 // Check if a file descriptor is valid
-int validFd(int fd, int fd_array_cur){
+int validFd(int fd, int fd_array_cur, int* fd_array){
 	if( fd >= fd_array_cur){	
   		fprintf(stderr, "Error: Invalid use of file descriptor %d before initiation.\n", fd);
   		return 0;
   	}
-  if (fcntl(fd_array[i], F_GETFD) != -1 || errno != EBADF) // if it hasn't been closed
+  if (fcntl(fd_array[fd], F_GETFD) != -1 || errno != EBADF) // if it hasn't been closed
     return 1;
   return 0;
 }
@@ -396,8 +396,19 @@ int main(int argc, char **argv) {
       }
 
       //check if i,o,e fd are valid 
-      if(!(validFd(i,fd_array_cur) && validFd(o,fd_array_cur) && validFd(e,fd_array_cur)))  
+      if(!(validFd(i,fd_array_cur, fd_array)) {
+        fprintf(stderr, "Invalid file descriptor: %d\n", i);
         continue;
+      }
+      if(!(validFd(o,fd_array_cur, fd_array)) {
+        fprintf(stderr, "Invalid file descriptor: %d\n", o);
+        continue;
+      }
+      if(!(validFd(e,fd_array_cur, fd_array)) {
+        fprintf(stderr, "Invalid file descriptor: %d\n", e);
+        continue;
+      } 
+        
 
       // fork to execute command
       pid_t pid = fork();
