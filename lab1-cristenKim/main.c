@@ -188,7 +188,8 @@ int main(int argc, char **argv) {
         {"pipe",        no_argument,        0,  'p' },
 	{"abort",       no_argument,        0,  'h' },
 	{"default",     required_argument,  0,  'i' },
-	{"catch",       required_argument,  0,  'j' }
+	{"catch",       required_argument,  0,  'j' },
+	{"ignore",      required_argument,  0,  'k' }
     };
 
     // get the next option
@@ -263,6 +264,11 @@ int main(int argc, char **argv) {
     case 'j':
       if(verbose) {printf("--catch %c", optarg);}
       signal(atoi(optarg), &catch);
+      break;
+      
+    case 'k':
+      if(verbose) {printf("--ignore %c", optarg);}
+      signal(atoi(optarg), SIG_IGN);
       break;
 
     case 'r': // read only 
