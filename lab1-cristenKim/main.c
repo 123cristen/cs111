@@ -180,7 +180,8 @@ int main(int argc, char **argv) {
       	{"default",     required_argument,  0,  'i' },
       	{"catch",       required_argument,  0,  'j' },
       	{"ignore",      required_argument,  0,  'k' },
-      	{"pause",       no_argument,        0,  'm' }
+      	{"pause",       no_argument,        0,  'm' },
+        {0,             0,                  0,   0  } // error handling
     };
 
     // get the next option
