@@ -19,13 +19,6 @@ See README for further information
 TO DO LIST
 
 difficult options:
-- catch N       // catch signal N, where N is a decimal integer, with a handler
-                  that outputs the diagnostic "N caught" to stderr, and exits with
-                  status N. This exits the entire shell. N uses the same numbering as
-                  your system; for example, on GNU/Linux, a segmentation violation is
-                  signal 11.
-- ignore N      // ignore signal N
-- default N     // use default behavior for signal N
 - pause         // waiting for signal to arrive
 
 ERROR CHECKING
@@ -189,7 +182,8 @@ int main(int argc, char **argv) {
 	{"abort",       no_argument,        0,  'h' },
 	{"default",     required_argument,  0,  'i' },
 	{"catch",       required_argument,  0,  'j' },
-	{"ignore",      required_argument,  0,  'k' }
+	{"ignore",      required_argument,  0,  'k' },
+	{"pause",       no_argument,        0,  'm' }
     };
 
     // get the next option
@@ -257,18 +251,23 @@ int main(int argc, char **argv) {
       break;
 
     case 'i':
-      if(verbose) {printf("--default %c", optarg);}
+      if(verbose) {printf("--default %c\n", optarg);}
       signal(atoi(optarg), SIG_DFL);
       break;
 
     case 'j':
-      if(verbose) {printf("--catch %c", optarg);}
+      if(verbose) {printf("--catch %c\n", optarg);}
       signal(atoi(optarg), &catch);
       break;
       
     case 'k':
-      if(verbose) {printf("--ignore %c", optarg);}
+      if(verbose) {printf("--ignore %c\n", optarg);}
       signal(atoi(optarg), SIG_IGN);
+      break;
+
+    case 'm':
+      if(verbose) {printf("--pause\n");}
+      pause();
       break;
 
     case 'r': // read only 
