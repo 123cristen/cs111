@@ -127,7 +127,7 @@ int isPipe(int fd, int * pipes, int size_of_pipes_arr) {
 
 //implements --catch N for signal( , )
 void catch(int n){
-  fprintf(stderr, "%i",  n);
+  fprintf(stderr, "%i caught\n",  n);
   exit(n);
 }
 
