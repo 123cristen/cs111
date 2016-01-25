@@ -19,11 +19,10 @@ See README for further information
 TO DO LIST
 
 ERROR CHECKING
+- redirect stdin, stdout and stderr if 0, 1, 2
 - catch another signal?
 - close only pipes before waiting
 - test close
-- pipe ends called in wrong order? runs correctly, should it print an error?
-- creat rdonly and wronly both create rdonlys
 ******************************************************************************/
 
 // holds the indices for start and end of a command in argv,
@@ -36,12 +35,14 @@ struct cmd_info {
 
 
 // Check if a file descriptor is valid
-int validFd(int fd, int fd_array_cur){
+int validFd(int fd, int fd_array_cur, int* fd_array){
 	if( fd >= fd_array_cur){	
   		fprintf(stderr, "Error: Invalid use of file descriptor %d before initiation.\n", fd);
   		return 0;
   	}
-  	return 1;
+  if (fcntl(fd_array[fd], F_GETFD) != -1 || errno != EBADF) // if it hasn't been closed
+    return 1;
+  return 0;
 }
 
 // Check if the open system call had an error
@@ -396,8 +397,19 @@ int main(int argc, char **argv) {
       }
 
       //check if i,o,e fd are valid 
-      if(!(validFd(i,fd_array_cur) && validFd(o,fd_array_cur) && validFd(e,fd_array_cur)))  
+      if(!(validFd(i,fd_array_cur, fd_array))) {
+        fprintf(stderr, "Invalid file descriptor: %d\n", i);
         continue;
+      }
+      if(!(validFd(o,fd_array_cur, fd_array))) {
+        fprintf(stderr, "Invalid file descriptor: %d\n", o);
+        continue;
+      }
+      if(!(validFd(e,fd_array_cur, fd_array))) {
+        fprintf(stderr, "Invalid file descriptor: %d\n", e);
+        continue;
+      } 
+        
 
       // fork to execute command
       pid_t pid = fork();
