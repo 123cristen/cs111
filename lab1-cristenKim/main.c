@@ -307,7 +307,7 @@ int main(int argc, char **argv) {
       }
       
       // open file into read write file descriptor
-      int rw_fd = open(optarg, oflag, 0777);
+      int rw_fd = open(optarg, oflag, 0644);
       if(checkOpenError(rw_fd) == -1) {
         exit_status = 1;
         continue;
