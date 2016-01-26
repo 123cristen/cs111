@@ -19,7 +19,7 @@ See README for further information
 TO DO LIST
 
 ERROR CHECKING
-- redirect stdin, stdout and stderr if 0, 1, 2
+- create files with correct permissions
 - catch another signal?
 - close only pipes before waiting
 ******************************************************************************/
@@ -250,17 +250,17 @@ int main(int argc, char **argv) {
       break;
 
     case 'i': // default
-      if(verbose) {printf("--default %c\n", optarg);}
+      if(verbose) {printf("--default %s\n", optarg);}
       signal(atoi(optarg), SIG_DFL);
       break;
 
     case 'j': // catch
-      if(verbose) {printf("--catch %c\n", optarg);}
+      if(verbose) {printf("--catch %s\n", optarg);}
       signal(atoi(optarg), &catch);
       break;
       
     case 'k': // ignore
-      if(verbose) {printf("--ignore %c\n", optarg);}
+      if(verbose) {printf("--ignore %s\n", optarg);}
       if(atoi(optarg) == 11)
         ignore_sigsegv = 1;
       signal(atoi(optarg), SIG_IGN);
@@ -308,7 +308,7 @@ int main(int argc, char **argv) {
       }
       
       // open file into read write file descriptor
-      int rw_fd = open(optarg, oflag, 777);
+      int rw_fd = open(optarg, oflag, 0777);
       if(checkOpenError(rw_fd) == -1) {
         exit_status = 1;
         continue;
@@ -496,11 +496,13 @@ int main(int argc, char **argv) {
       int waitStatus;
 
       // Close all used file descriptors
-      fd_array_cur--;
-      while (fd_array_cur >= 0) {
-        if (fcntl(fd_array[fd_array_cur], F_GETFD) != -1 || errno != EBADF)
-          close(fd_array[fd_array_cur]);
-        fd_array_cur--;
+      int k = 0;
+      while (k < fd_array_cur) {
+        if (isPipe(k, pipes, num_pipe_fd)) {
+          if (fcntl(fd_array[k], F_GETFD) != -1 || errno != EBADF))) 
+            close(fd_array[k]);
+        }
+        fd_array_cur++;
       }
 
       while (1) {
