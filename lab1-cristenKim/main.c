@@ -441,9 +441,9 @@ int main(int argc, char **argv) {
           } 
           // else error handling if output isn't from write end of pipe
         }
-        // close(fd_array[i]);
-        // close(fd_array[o]);
-        // close(fd_array[e]);
+        close(fd_array[i]);
+        close(fd_array[o]);
+        close(fd_array[e]);
 
         // Close all used file descriptors
         // fd_array_cur--;
