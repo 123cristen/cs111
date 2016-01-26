@@ -97,9 +97,9 @@ int findArgs(char*** args_array, size_t args_array_size,
     //realloc: same mechanics as fd_array
     if(args_array_cur == args_array_size){
       args_array_size *= 2;
-      *args_array = (char**)realloc((void*)args_array, args_array_size*sizeof(char*)); 
+      *args_array = (char**)realloc((void*)*args_array, args_array_size*sizeof(char*)); 
     }
-    *args_array[args_array_cur] = argv[index];
+    (*args_array)[args_array_cur] = argv[index];
     args_array_cur++;
     index++;
   }
