@@ -511,7 +511,7 @@ int main(int argc, char **argv) {
               // Close all used file descriptors
         fd_array_cur--;
         while (fd_array_cur >= 0) {
-          if (fcntl(fd_array[fd_array_cur], F_GETFD) != -1 || errno != EBADF)
+          //if (fcntl(fd_array[fd_array_cur], F_GETFD) != -1 || errno != EBADF)
             close(fd_array[fd_array_cur]);
           fd_array_cur--;
         }
