@@ -498,7 +498,7 @@ int main(int argc, char **argv) {
       int k = 0;
       while (k < fd_array_cur) {
         if (isPipe(k, pipes, num_pipe_fd)) {
-          if (fcntl(fd_array[k], F_GETFD) != -1 || errno != EBADF))) 
+          if (fcntl(fd_array[k], F_GETFD) != -1 || errno != EBADF)
             close(fd_array[k]);
         }
         fd_array_cur++;
