@@ -81,7 +81,7 @@ int passChecks(char* str, int index, int num_args) {
 // Stores all arguments for a command in args_array, until the next "--" flag
 // Doesn't include optarg which is accepted automatically.
 // Keeps the current index updated and returns the updated argv index (optind)
-int findArgs(char** args_array, size_t args_array_size, 
+int findArgs(char*** args_array, size_t args_array_size, 
               int index, int* args_current,
               int argc, char** argv) {
   
@@ -97,9 +97,9 @@ int findArgs(char** args_array, size_t args_array_size,
     //realloc: same mechanics as fd_array
     if(args_array_cur == args_array_size){
       args_array_size *= 2;
-      args_array = (char**)realloc((void*)args_array, args_array_size*sizeof(char*)); 
+      *args_array = (char**)realloc((void*)args_array, args_array_size*sizeof(char*)); 
     }
-    args_array[args_array_cur] = argv[index];
+    *args_array[args_array_cur] = argv[index];
     args_array_cur++;
     index++;
   }
@@ -288,7 +288,7 @@ int main(int argc, char **argv) {
 
       // find all arguments before the next --. These will be printed if
               // verbose is enabled, and otherwise will be ignored.
-      optind = findArgs(args_array, args_array_size, optind, &args_array_cur,
+      optind = findArgs(&args_array, args_array_size, optind, &args_array_cur,
                         argc, argv);
 
       // print command if verbose is enabled
@@ -371,7 +371,7 @@ int main(int argc, char **argv) {
       args_array_cur++;
 
       // find arguments for command
-      optind = findArgs(args_array, args_array_size, optind, &args_array_cur,
+      optind = findArgs(&args_array, args_array_size, optind, &args_array_cur,
                         argc, argv);
 
       commands[cmd_info_cur].cmd_end = optind;
