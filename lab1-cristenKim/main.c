@@ -316,7 +316,7 @@ int main(int argc, char **argv) {
       // save file descriptor to array
       if (fd_array_cur == fd_array_size) {
       	fd_array_size *= 2;
-      	fd_array = (int*)realloc((void*)fd_array, fd_array_size); 
+      	fd_array = (int*)realloc((void*)fd_array, fd_array_size*sizeof(int)); 
       }
       fd_array[fd_array_cur] = rw_fd;
       fd_array_cur++;
@@ -482,12 +482,12 @@ int main(int argc, char **argv) {
       for (i = 0; i < 2; i++) {
         if (fd_array_cur == fd_array_size) {
           fd_array_size *= 2;
-          fd_array = (int*)realloc((void*)fd_array, fd_array_size); 
+          fd_array = (int*)realloc((void*)fd_array, fd_array_size*sizeof(int)); 
         }
         fd_array[fd_array_cur] = fd[i];
         if (pipes_cur == num_pipe_fd) {
           num_pipe_fd *= 2;
-          pipes = (int *)realloc((void *) pipes, num_pipe_fd);
+          pipes = (int *)realloc((void *) pipes, num_pipe_fd*sizeof(int));
         }
         pipes[pipes_cur] = fd_array_cur;
         pipes_cur++;
@@ -575,7 +575,7 @@ int main(int argc, char **argv) {
   }
 
   // Free file descriptor, pipes, and command arrays
-  //free(fd_array);
+  free(fd_array);
   free(pipes);
   free(commands);
 
