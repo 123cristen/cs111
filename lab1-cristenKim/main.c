@@ -507,22 +507,22 @@ int main(int argc, char **argv) {
       int waitStatus;
 
       // Close all pipes descriptors
-      int k = 0;
-      while (k < fd_array_cur) {
-        if (isPipe(k, pipes, num_pipe_fd)) {
-          if (fcntl(fd_array[k], F_GETFD) != -1 || errno != EBADF)
-            close(fd_array[k]);
-        }
-        fd_array_cur++;
-      }
+      // int k = 0;
+      // while (k < fd_array_cur) {
+      //   if (isPipe(k, pipes, num_pipe_fd)) {
+      //     if (fcntl(fd_array[k], F_GETFD) != -1 || errno != EBADF)
+      //       close(fd_array[k]);
+      //   }
+      //   fd_array_cur++;
+      // }
 
               // Close all used file descriptors
-        // fd_array_cur--;
-        // while (fd_array_cur >= 0) {
-        //   if (fcntl(fd_array[fd_array_cur], F_GETFD) != -1 || errno != EBADF)
-        //     close(fd_array[fd_array_cur]);
-        //   fd_array_cur--;
-        // }
+        fd_array_cur--;
+        while (fd_array_cur >= 0) {
+          if (fcntl(fd_array[fd_array_cur], F_GETFD) != -1 || errno != EBADF)
+            close(fd_array[fd_array_cur]);
+          fd_array_cur--;
+        }
 
       while (1) {
         //wait for any child process to finish. 0 is for blocking.
