@@ -310,7 +310,7 @@ int main(int argc, char **argv) {
       int rw_fd = open(optarg, oflag, 0644);
       if(checkOpenError(rw_fd) == -1) {
         exit_status = 1;
-        continue;
+        break;
       }
       
       // save file descriptor to array
@@ -397,15 +397,15 @@ int main(int argc, char **argv) {
       //check if i,o,e fd are valid 
       if(!(validFd(i,fd_array_cur, fd_array))) {
         fprintf(stderr, "Invalid file descriptor: %d\n", i);
-        continue;
+        break;
       }
       if(!(validFd(o,fd_array_cur, fd_array))) {
         fprintf(stderr, "Invalid file descriptor: %d\n", o);
-        continue;
+        break;
       }
       if(!(validFd(e,fd_array_cur, fd_array))) {
         fprintf(stderr, "Invalid file descriptor: %d\n", e);
-        continue;
+        break;
       } 
         
 
@@ -442,17 +442,14 @@ int main(int argc, char **argv) {
           // else error handling if output isn't from write end of pipe
         }
         close(fd_array[i]);
-      close(fd_array[o]);
-      close(fd_array[e]);
+        close(fd_array[o]);
+        close(fd_array[e]);
         // execute process
         execvp(args_array[0], args_array);
         //return to main program if execvp fails
         fprintf(stderr, "Error: Unknown command '%s'\n", args_array[0]);
         exit(255);  
       }
-      close(fd_array[i]);
-      close(fd_array[o]);
-      close(fd_array[e]);
 
       // parent process moves to next command after saving this one
       commands[cmd_info_cur].pid = pid;
@@ -470,7 +467,7 @@ int main(int argc, char **argv) {
       if (val < 0) {
         fprintf(stderr, "Error: pipe could not be opened\n");
         exit_status = 1;
-        continue;
+        break;
       }
 
       // save file descriptors to fd and pipe array
