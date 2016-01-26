@@ -16,7 +16,9 @@ This is not ideal, but the alternative of requiring the user to close the
 correct file descriptors before calling wait is also not ideal. 
 
 We saved the pipe file descriptors in a separate array so that the we could
-close the unused end of the pipe when a child process was forked.
+close the unused end of the pipe when a child process was forked, but this
+version did not work (it is currently commented out) so we closed all file
+descriptors in the child process instead.
 
 Our testing is in test.sh, which can be invoked using "make check".
 
