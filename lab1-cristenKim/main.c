@@ -516,13 +516,13 @@ int main(int argc, char **argv) {
       //   fd_array_cur++;
       // }
 
-              // Close all used file descriptors
+      // Close all used file descriptors
+      fd_array_cur--;
+      while (fd_array_cur >= 0) {
+        if (fcntl(fd_array[fd_array_cur], F_GETFD) != -1 || errno != EBADF)
+          close(fd_array[fd_array_cur]);
         fd_array_cur--;
-        while (fd_array_cur >= 0) {
-          if (fcntl(fd_array[fd_array_cur], F_GETFD) != -1 || errno != EBADF)
-            close(fd_array[fd_array_cur]);
-          fd_array_cur--;
-        }
+      }
 
       while (1) {
         //wait for any child process to finish. 0 is for blocking.
