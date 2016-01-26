@@ -441,17 +441,19 @@ int main(int argc, char **argv) {
           } 
           // else error handling if output isn't from write end of pipe
         }
-
         close(fd_array[i]);
-        close(fd_array[o]);
-        close(fd_array[e]);
-        
+      close(fd_array[o]);
+      close(fd_array[e]);
         // execute process
         execvp(args_array[0], args_array);
         //return to main program if execvp fails
         fprintf(stderr, "Error: Unknown command '%s'\n", args_array[0]);
         exit(255);  
       }
+      close(fd_array[i]);
+      close(fd_array[o]);
+      close(fd_array[e]);
+
       // parent process moves to next command after saving this one
       commands[cmd_info_cur].pid = pid;
       cmd_info_cur++;
