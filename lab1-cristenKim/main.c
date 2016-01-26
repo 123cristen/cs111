@@ -20,7 +20,6 @@ TO DO LIST
 
 ERROR CHECKING
 - create files with correct permissions
-- catch another signal?
 - close only pipes before waiting
 ******************************************************************************/
 
