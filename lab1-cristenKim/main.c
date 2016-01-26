@@ -441,6 +441,10 @@ int main(int argc, char **argv) {
           } 
           // else error handling if output isn't from write end of pipe
         }
+
+        close(fd_array[i]);
+        close(fd_array[o]);
+        close(fd_array[e]);
         
         // execute process
         execvp(args_array[0], args_array);
