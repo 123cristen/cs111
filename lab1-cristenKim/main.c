@@ -576,8 +576,8 @@ int main(int argc, char **argv) {
 
   // Free file descriptor, pipes, and command arrays
   free(fd_array);
-  free(pipes);
-  //free(commands);
+  //free(pipes);
+  free(commands);
 
   // Exit with previously set status
   exit(exit_status);
