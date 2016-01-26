@@ -413,6 +413,12 @@ int main(int argc, char **argv) {
       pid_t pid = fork();
 
       if (pid == 0) {   //child process
+
+        //redirect stdin to i, stdout to o, stderr to e
+        dup2(fd_array[i], 0);
+        dup2(fd_array[o], 1);
+        dup2(fd_array[e], 2);
+
         // close unused pipes
         if (isPipe(i, pipes, pipes_cur)) {
           if (isPipe(i+1, pipes, pipes_cur)) { 
@@ -435,11 +441,6 @@ int main(int argc, char **argv) {
           } 
           // else error handling if output isn't from write end of pipe
         }
-
-        //redirect stdin to i, stdout to o, stderr to e
-        dup2(fd_array[i], 0);
-        dup2(fd_array[o], 1);
-        dup2(fd_array[e], 2);
         
         // execute process
         execvp(args_array[0], args_array);
@@ -494,15 +495,23 @@ int main(int argc, char **argv) {
       pid_t returnedPid;
       int waitStatus;
 
-      // Close all used file descriptors
-      int k = 0;
-      while (k < fd_array_cur) {
-        if (isPipe(k, pipes, num_pipe_fd)) {
-          if (fcntl(fd_array[k], F_GETFD) != -1 || errno != EBADF)
-            close(fd_array[k]);
+      // Close all pipes descriptors
+      // int k = 0;
+      // while (k < fd_array_cur) {
+      //   if (isPipe(k, pipes, num_pipe_fd)) {
+      //     if (fcntl(fd_array[k], F_GETFD) != -1 || errno != EBADF)
+      //       close(fd_array[k]);
+      //   }
+      //   fd_array_cur++;
+      // }
+
+              // Close all used file descriptors
+        fd_array_cur--;
+        while (fd_array_cur >= 0) {
+          if (fcntl(fd_array[fd_array_cur], F_GETFD) != -1 || errno != EBADF)
+            close(fd_array[fd_array_cur]);
+          fd_array_cur--;
         }
-        fd_array_cur++;
-      }
 
       while (1) {
         //wait for any child process to finish. 0 is for blocking.
