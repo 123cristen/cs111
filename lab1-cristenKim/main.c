@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
         {"command",     required_argument,  0,  'c' },
         {"verbose",     no_argument,        0,  'v' },
         {"close",       required_argument,  0,  'o' },
-        {"wait",        no_argument,        0,  'z' },
+        {"wait",        optional_argument,   0,  'z' },
         {"append",      no_argument,        0,  'a' }, // fileflags[0]
         {"cloexec",     no_argument,        0,  'l' }, // fileflags[1]
         {"creat",       no_argument,        0,  't' }, // fileflags[2]
@@ -493,11 +493,13 @@ int main(int argc, char **argv) {
       break;
       
     case 'z':  { // wait
-      if (verbose) { printf("--wait\n"); }
       int status;
       pid_t returnedPid;
       int waitStatus;
 
+      if(optarg == NULL){
+      if (verbose) { printf("--wait\n"); }
+     
       // Close all pipes descriptors
       // int k = 0;
       // while (k < fd_array_cur) {
@@ -508,13 +510,7 @@ int main(int argc, char **argv) {
       //   fd_array_cur++;
       // }
 
-      // Close all used file descriptors
-      fd_array_cur--;
-      while (fd_array_cur >= 0) {
-        if (fcntl(fd_array[fd_array_cur], F_GETFD) != -1 || errno != EBADF)
-          close(fd_array[fd_array_cur]);
-        fd_array_cur--;
-      }
+     
 
       while (1) {
         //wait for any child process to finish. 0 is for blocking.
@@ -545,6 +541,14 @@ int main(int argc, char **argv) {
         }
         printf("\n");
       }
+     
+    }
+      else //OPTARG IS NOT NULL, WE ARE WAITING ON AN INDIVIDUAL
+	{
+	  if(verbose) { printf("--wait=%s\n", optarg); }
+	  waitpid(commands[atoi(optarg)].pid, &status, 0);
+
+	}
       break;
     }
      
