@@ -543,12 +543,43 @@ int main(int argc, char **argv) {
       }
      
     }
-      else //OPTARG IS NOT NULL, WE ARE WAITING ON AN INDIVIDUAL
-	{
-	  if(verbose) { printf("--wait=%s\n", optarg); }
-	  waitpid(commands[atoi(optarg)].pid, &status, 0);
+    else //OPTARG IS NOT NULL, WE ARE WAITING ON AN INDIVIDUAL
+  	{
+  	  if(verbose) { printf("--wait=%s\n", optarg); }
+  	  
+      if (commands[atoi(optarg)].pid == -1) {
+        // exit if command was already waited for
+        break;
+      }
 
-	}
+      returnedPid = waitpid(commands[atoi(optarg)].pid, &status, 0);
+    
+      if (atoi(optarg) >= cmd_info_cur) {
+        fprintf(stderr, "Error: must be a valid command index\n");
+        break;
+      }
+
+     //WEXITSTATUS returns the exit status of the child.
+      waitStatus = WEXITSTATUS(status);
+
+      // break if no remaining processes to wait for
+      if (returnedPid == -1) { break; }
+
+      // sets exit status to the maximum of all exit statuses
+      if (waitStatus > exit_status) {
+        exit_status = waitStatus;
+      }
+
+      // print the exit status and arguments of exited process
+      printf("%d ", waitStatus);
+      int j = atoi(optarg);
+      int i;
+      for (i = commands[j].cmd_start; i < commands[j].cmd_end; i++) {
+            printf("%s ", argv[i]);
+      }  
+      printf("\n");
+      commands[j].pid = -1;
+  	}
       break;
     }
      
