@@ -8,22 +8,15 @@ Lab 1
 This submission is for the design problem for lab 1B. 
 All the options specified will work, except --profile, and we implemented
 the additional capability of waiting on one specified process by giving wait
-an optional argument.
-
-This optional argument is the command number that the user would like to wait
-on. The first command is index 0. 
+an optional argument. Because the argument is optional, it must be invoked
+using --wait=N, where N is the index of the command to be waited for. The 
+first command is referenced at index 0. 
 
 This implementation requires that the user close the appropriate pipe file 
 descriptors before calling wait, since wait cannot close all the pipe file
 descriptors since it is no longer guaranteed to be the last option. 
 
-We saved the pipe file descriptors in a separate array so that the we could
-close the unused end of the pipe when a child process was forked, but this
-version did not work (it is currently commented out) so we closed all file
-descriptors in the child process instead.
-
 Our testing is in test.sh, which can be invoked using "make check".
 
 We implemented the Makefile such that the user can use "make", "make check",
-"make clean", "make dist" as specified in the spec. There are currently
-no tests run for "make dist". 
+"make clean", "make dist" as specified in the spec. 
