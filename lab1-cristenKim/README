@@ -5,15 +5,17 @@ Cristen Anderson <904400797> and Kim Svatos <604425426>
 
 Lab 1
 
-This submission is for lab 1B, which is the second part of lab 1. 
-All the options specified will work, except --profile.
+This submission is for the design problem for lab 1B. 
+All the options specified will work, except --profile, and we implemented
+the additional capability of waiting on one specified process by giving wait
+an optional argument.
 
-It can be built using make, and run using ./simpsh 
+This optional argument is the command number that the user would like to wait
+on. The first command is index 0. 
 
-For our implementation of wait, --wait must be the last option specified because
-it will close all of the pipes, to solve the infinite waiting problem.
-This is not ideal, but the alternative of requiring the user to close the
-correct file descriptors before calling wait is also not ideal. 
+This implementation requires that the user close the appropriate pipe file 
+descriptors before calling wait, since wait cannot close all the pipe file
+descriptors since it is no longer guaranteed to be the last option. 
 
 We saved the pipe file descriptors in a separate array so that the we could
 close the unused end of the pipe when a child process was forked, but this
