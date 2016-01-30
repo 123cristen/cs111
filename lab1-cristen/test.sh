@@ -22,7 +22,7 @@ echo "Here is a file" > "$a"
 
 # Test 1: open invalid file
 ./simpsh --rdonly noFile 2>&1 | grep "Error: open returned unsuccessfully" > /dev/null
-if [ $? -ne 0]
+if [ $? -ne 0 ]
 	then 
 		echo "Test 1: success"	
 	else
@@ -35,7 +35,7 @@ fi
 cat $a > $c
 cat $b > $d
 diff -u $c $d > /dev/null
-if [ $? -ne 0]
+if [ $? -ne 0 ]
 	then 
 		echo "Test 2: success"	
 	else
@@ -48,7 +48,7 @@ fi
 
 # Test 3: report invalid file descriptor
 ./simpsh --command 0 1 2 echo "hi" 2>&1 | grep "initiation" > /dev/null
-if [ $? -ne 0]
+if [ $? -ne 0 ]
 	then 
 		echo "Test 3: success"	
 	else
@@ -59,7 +59,7 @@ fi
 # Test 4: write to read only file
 ./simpsh --rdonly $a --rdonly $b --wronly $c --command 0 1 2 cat -
 cat $c | grep "Bad file descriptor" > /dev/null
-if [ $? -ne 0]
+if [ $? -ne 0 ]
 	then 
 		echo "Test 4: success"	
 	else
@@ -71,7 +71,7 @@ fi
 
 # Test 5: correct number/type of arguments
 ./simpsh --rdonly $a --wronly $b --wronly $c --command 0 1 cat - 2>&1 | grep "Error: Incorrect usage of --command. Requires integer argument." > /dev/null
-if [ $? -ne 0]
+if [ $? -ne 0 ]
 	then 
 		echo "Test 5: success"	
 	else
@@ -85,7 +85,7 @@ fi
 ./simpsh --verbose --rdonly $a --wronly $b --wronly $c --command 0 1 2 cat - > $d
 echo '--rdonly /tmp/a ' > $e; echo '--wronly /tmp/b ' >> $e; echo '--wronly /tmp/c ' >> $e; echo '--command 0 1 2 cat - ' >> $e
 diff -u $d $e > /dev/null 
-if [ $? -ne 0]
+if [ $? -ne 0 ]
 	then 
 		echo "Test 6: success"	
 	else
@@ -98,10 +98,10 @@ fi
 > "$e"
 
 # Test 7: file flags correctly passed to open()
-echo "A has content" > $a
+echo "'a' has content" > $a
 ./simpsh --trunc --rdwr $a
 diff -u $a $b > /dev/null
-if [ $? -ne 0]
+if [ $? -ne 0 ]
 	then 
 		echo "Test 7: success"	
 	else
