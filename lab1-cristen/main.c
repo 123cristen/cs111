@@ -364,8 +364,8 @@ int main(int argc, char **argv) {
       
       if (profile) {
         getrusage(RUSAGE_SELF, &e_usage);
-        user_time = getUserTimeDif(s_usage, e_usage);
-        sys_time = getSysTimeDif(s_usage, e_usage);
+        user_time = getUserTimeDif(&s_usage, &e_usage);
+        sys_time = getSysTimeDif(&s_usage, &e_usage);
         printf("CPU time: %lld\t User time: %lld\n", sys_time, user_time);
       }
 
