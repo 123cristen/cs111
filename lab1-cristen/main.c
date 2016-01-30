@@ -572,12 +572,6 @@ int main(int argc, char **argv) {
       if (verbose) { printf("--profile\n"); }
       in_fileflags = 0;
       profile = 1;
-      if (profile) {
-        getrusage(RUSAGE_SELF, &e_usage);
-        user_time = getUserTimeDif(&s_usage, &e_usage);
-        sys_time = getSysTimeDif(&s_usage, &e_usage);
-        printTime(user_time, sys_time);
-      }
       break;
       
     case 'z':  { // wait
