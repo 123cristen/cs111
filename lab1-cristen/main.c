@@ -117,16 +117,16 @@ void catch(int n){
   exit(n);
 }
 
-long long getUserTimeDif(struct rusage start, struct rusage end) {
-  long long end = (long long)(end.ru_utime.tv_sec*pow(10, 6) + end.ru_utime.tv_usec);
-  long long start = (long long) (start.ru_utime.tv_sec*pow(10, 6) + start.ru_utime.tv_usec);
-  return end-start;
+long long getUserTimeDif(struct rusage *start, struct rusage *end) {
+  long long endTime = (long long)(end->ru_utime.tv_sec*pow(10, 6) + end->ru_utime.tv_usec);
+  long long startTime = (long long) (start->ru_utime.tv_sec*pow(10, 6) + start->ru_utime.tv_usec);
+  return endTime-startTime;
 }
 
-long long getSysTimeDif(struct rusage start, struct rusage end) {
-  long long end = end.ru_stime.tv_sec*pow(10, 6) + end.ru_stime.tv_usec;
-  long long start = start.ru_stime.tv_sec*pow(10, 6) + start.ru_stime.tv_usec;
-  return end-start;
+long long getSysTimeDif(struct rusage *start, struct rusage* end) {
+  long long endTime = end->ru_stime.tv_sec*pow(10, 6) + end->ru_stime.tv_usec;
+  long long startTime = start->ru_stime.tv_sec*pow(10, 6) + start->ru_stime.tv_usec;
+  return endTime-startTime;
 }
 
 int main(int argc, char **argv) {
@@ -171,7 +171,7 @@ int main(int argc, char **argv) {
   // Parse and handle options
   while (1) {
     if (profile && !in_fileflags) {
-      getrusage(RUSAGE_SELF, s_usage);
+      getrusage(RUSAGE_SELF, &s_usage);
     }
     int option_index = 0;
     static struct option long_options[] = {
@@ -200,7 +200,7 @@ int main(int argc, char **argv) {
       	{"catch",       required_argument,  0,  'j' },
       	{"ignore",      required_argument,  0,  'k' },
       	{"pause",       no_argument,        0,  'm' },
-        {"profile",     no_argument,        0,  'f' }
+        {"profile",     no_argument,        0,  'f' },
         {0,             0,                  0,   0  } // error handling
     };
 
@@ -363,7 +363,7 @@ int main(int argc, char **argv) {
       for (k = 0; k < 11; k++) { fileflags[k] = 0;}
       
       if (profile) {
-        getrusage(RUSAGE_SELF, e_usage);
+        getrusage(RUSAGE_SELF, &e_usage);
         user_time = getUserTimeDif(s_usage, e_usage);
         sys_time = getSysTimeDif(s_usage, e_usage);
         printf("CPU time: %lld\t User time: %lld\n", sys_time, user_time);
