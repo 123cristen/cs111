@@ -22,7 +22,7 @@ echo "Here is a file" > "$a"
 
 # Test 1: open invalid file
 ./simpsh --rdonly noFile 2>&1 | grep "Error: open returned unsuccessfully" > /dev/null
-if [ $? -ne 0 ]
+if [ $? -e 0 ]
 	then 
 		echo "Test 1: success"	
 	else
