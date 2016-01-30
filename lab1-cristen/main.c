@@ -129,6 +129,10 @@ long long getSysTimeDif(struct rusage *start, struct rusage* end) {
   return endTime-startTime;
 }
 
+void printTime(user_time, sys_time) {
+  printf("CPU time: %lld\t us User time: %lld us\n", sys_time, user_time);
+}
+
 int main(int argc, char **argv) {
 
   // Array to hold commands and info
@@ -285,12 +289,24 @@ int main(int argc, char **argv) {
       in_fileflags = 0;
       if(verbose) {printf("--default %s\n", optarg);}
       signal(atoi(optarg), SIG_DFL);
+      if (profile) {
+        getrusage(RUSAGE_SELF, &e_usage);
+        user_time = getUserTimeDif(&s_usage, &e_usage);
+        sys_time = getSysTimeDif(&s_usage, &e_usage);
+        printTime(user_time, sys_time);
+      }
       break;
 
     case 'j': // catch
       in_fileflags = 0;
       if(verbose) {printf("--catch %s\n", optarg);}
       signal(atoi(optarg), &catch);
+      if (profile) {
+        getrusage(RUSAGE_SELF, &e_usage);
+        user_time = getUserTimeDif(&s_usage, &e_usage);
+        sys_time = getSysTimeDif(&s_usage, &e_usage);
+        printTime(user_time, sys_time);
+      }
       break;
       
     case 'k': // ignore
@@ -299,6 +315,12 @@ int main(int argc, char **argv) {
       if(atoi(optarg) == 11)
         ignore_sigsegv = 1;
       signal(atoi(optarg), SIG_IGN);
+      if (profile) {
+        getrusage(RUSAGE_SELF, &e_usage);
+        user_time = getUserTimeDif(&s_usage, &e_usage);
+        sys_time = getSysTimeDif(&s_usage, &e_usage);
+        printTime(user_time, sys_time);
+      }
       break;
 
     case 'm': // pause
@@ -366,7 +388,7 @@ int main(int argc, char **argv) {
         getrusage(RUSAGE_SELF, &e_usage);
         user_time = getUserTimeDif(&s_usage, &e_usage);
         sys_time = getSysTimeDif(&s_usage, &e_usage);
-        printf("CPU time: %lld\t User time: %lld\n", sys_time, user_time);
+        printTime(user_time, sys_time);
       }
 
       break;
@@ -384,6 +406,12 @@ int main(int argc, char **argv) {
       }
       else {
         fprintf(stderr, "Error: Incorrect usage of --close. Requires integer argument.\n");
+      }
+      if (profile) {
+        getrusage(RUSAGE_SELF, &e_usage);
+        user_time = getUserTimeDif(&s_usage, &e_usage);
+        sys_time = getSysTimeDif(&s_usage, &e_usage);
+        printTime(user_time, sys_time);
       }
       break;
 
@@ -482,6 +510,12 @@ int main(int argc, char **argv) {
       // parent process moves to next command after saving this one
       commands[cmd_info_cur].pid = pid;
       cmd_info_cur++;
+      if (profile) {
+        getrusage(RUSAGE_SELF, &e_usage);
+        user_time = getUserTimeDif(&s_usage, &e_usage);
+        sys_time = getSysTimeDif(&s_usage, &e_usage);
+        printTime(user_time, sys_time);
+      }
       break;
     }
 
@@ -514,17 +548,36 @@ int main(int argc, char **argv) {
         pipes_cur++;
         fd_array_cur++;
       }
+      if (profile) {
+        getrusage(RUSAGE_SELF, &e_usage);
+        user_time = getUserTimeDif(&s_usage, &e_usage);
+        sys_time = getSysTimeDif(&s_usage, &e_usage);
+        printTime(user_time, sys_time);
+      }
       break;
     }
      
     case 'v': // verbose
       in_fileflags = 0;
       verbose = 1;
+      if (profile) {
+        getrusage(RUSAGE_SELF, &e_usage);
+        user_time = getUserTimeDif(&s_usage, &e_usage);
+        sys_time = getSysTimeDif(&s_usage, &e_usage);
+        printTime(user_time, sys_time);
+      }
       break;
 
     case 'f': // profile
+      if (verbose) { printf("--profile\n"); }
       in_fileflags = 0;
       profile = 1;
+      if (profile) {
+        getrusage(RUSAGE_SELF, &e_usage);
+        user_time = getUserTimeDif(&s_usage, &e_usage);
+        sys_time = getSysTimeDif(&s_usage, &e_usage);
+        printTime(user_time, sys_time);
+      }
       break;
       
     case 'z':  { // wait
@@ -570,6 +623,18 @@ int main(int argc, char **argv) {
           } else { j++; }
         }
         printf("\n");
+      }
+      if (profile) {
+        getrusage(RUSAGE_SELF, &e_usage);
+        user_time = getUserTimeDif(&s_usage, &e_usage);
+        sys_time = getSysTimeDif(&s_usage, &e_usage);
+
+        struct rusage children;
+        getrusage(RUSAGE_CHILDREN, &children);
+        user_time += (long long) (children.ru_utime.tv_sec*pow(10, 6) + children.ru_utime.tv_usec);
+        sys_time += (long long) (children.ru_stime.tv_sec*pow(10, 6) + children.ru_stime.tv_usec);
+
+        printTime(user_time, sys_time);
       }
       break;
     }

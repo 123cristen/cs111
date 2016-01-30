@@ -10,14 +10,12 @@ All the options specified will work.
 
 It can be built using make, and run using ./simpsh 
 
-For our implementation of wait, --wait must be the last option specified because
-it will close all of the pipes, to solve the infinite waiting problem.
-This is not ideal, but the alternative of requiring the user to close the
-correct file descriptors before calling wait is also not ideal. 
-
-We saved the pipe file descriptors in a separate array so that the we could
-close the unused end of the pipe when a child process was forked, but this
-version did not work so we closed all file descriptors in the child process instead.
+The --profile option will print CPU time and user time in microseconds
+for each command option, except the file flags which it combines.
+Profile does not print anything for abort and pause, as there is no viable
+way to check resource usage for these commands. For the wait command, profile
+prints the CPU and user time for the wait command combined with that of
+all the child processes waited on.
 
 In my implementation of profile, I made a tradeoff for performance rather than 
 robustness in the way it works with fileflags. Rather than polling getrusage
@@ -28,6 +26,14 @@ end in opening a file, its rusage will be combined with the fileflag.
 For example, ./simpsh --profile ... --append --command ... will combine
 the resource usage for append and command in its output.
 
+For our implementation of wait, --wait must be the last option specified because
+it will close all of the pipes, to solve the infinite waiting problem.
+This is not ideal, but the alternative of requiring the user to close the
+correct file descriptors before calling wait is also not ideal. 
+
+We saved the pipe file descriptors in a separate array so that the we could
+close the unused end of the pipe when a child process was forked, but this
+version did not work so we closed all file descriptors in the child process instead.
 
 Our testing is in test.sh, which can be invoked using "make check".
 
