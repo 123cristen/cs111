@@ -11,8 +11,11 @@ See README for further information
 #include <ctype.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <errno.h>
 #include <signal.h>
+#include <math.h>
 #define _GNU_SOURCE
 
 // holds the indices for start and end of a command in argv,
@@ -114,6 +117,18 @@ void catch(int n){
   exit(n);
 }
 
+long long getUserTimeDif(struct rusage start, struct rusage end) {
+  long long end = (long long)(end.ru_utime.tv_sec*pow(10, 6) + end.ru_utime.tv_usec);
+  long long start = (long long) (start.ru_utime.tv_sec*pow(10, 6) + start.ru_utime.tv_usec);
+  return end-start;
+}
+
+long long getSysTimeDif(struct rusage start, struct rusage end) {
+  long long end = end.ru_stime.tv_sec*pow(10, 6) + end.ru_stime.tv_usec;
+  long long start = start.ru_stime.tv_sec*pow(10, 6) + start.ru_stime.tv_usec;
+  return end-start;
+}
+
 int main(int argc, char **argv) {
 
   // Array to hold commands and info
@@ -134,8 +149,18 @@ int main(int argc, char **argv) {
   // array of flags when opening a file 
   int fileflags[11] = {0};
 
-  // Verbose can be on or off, automatically set to off
+  // Verbose and profile can be on or off, automatically set to off
   int verbose = 0;
+  int profile = 0;
+
+  // used to measure usage of all file flags collectively
+  int in_fileflags = 0;
+
+  // rusage struct will carry start and end usage:
+  struct rusage s_usage;
+  struct rusage e_usage;
+  long long sys_time;
+  long long user_time;
 
   // will be updated as described in the spec
   int exit_status = 0;
@@ -145,6 +170,9 @@ int main(int argc, char **argv) {
 
   // Parse and handle options
   while (1) {
+    if (profile && !in_fileflags) {
+      getrusage(RUSAGE_SELF, s_usage);
+    }
     int option_index = 0;
     static struct option long_options[] = {
     	// { "name",      has_arg,         *flag, val }
@@ -172,6 +200,7 @@ int main(int argc, char **argv) {
       	{"catch",       required_argument,  0,  'j' },
       	{"ignore",      required_argument,  0,  'k' },
       	{"pause",       no_argument,        0,  'm' },
+        {"profile",     no_argument,        0,  'f' }
         {0,             0,                  0,   0  } // error handling
     };
 
@@ -192,65 +221,80 @@ int main(int argc, char **argv) {
     case 'a': // append fileflags[0]
       if (verbose) { printf("--append "); }
       fileflags[0] = O_APPEND;
+      in_fileflags = 1;
       break;
     case 'l': //cloexec fileflags[1]
       if (verbose) { printf("--cloexec "); }
       fileflags[1] = O_CLOEXEC;
+      in_fileflags = 1;
       break;
     case 't': //creat fileflags[2]
       if (verbose) { printf("--creat "); }
       fileflags[2] = O_CREAT;
+      in_fileflags = 1;
       break;
     case 'd': // directory fileflags[3]
       if (verbose) { printf("--directory "); }
       fileflags[3] = O_DIRECTORY;
+      in_fileflags = 1;
       break;
     case 'y': // dsync fileflags[4]
       if (verbose) { printf("--dsync "); }
       fileflags[4] = O_DSYNC;
+      in_fileflags = 1;
       break;
     case 'x': //excl fileflags[5]
       if (verbose) { printf("--excl "); }
       fileflags[5] = O_EXCL;
+      in_fileflags = 1;
       break;
     case 'n': // nofollow fileflags[6]
       if (verbose) { printf("--nofollow "); }
       fileflags[6] = O_NOFOLLOW;
+      in_fileflags = 1;
       break;
     case 'b': //nonblock fileflags[7]
       if (verbose) { printf("--nonblock "); }
       fileflags[7] = O_NONBLOCK;
+      in_fileflags = 1;
       break;
     case 'e': //rsync fileflags[8]
       if (verbose) { printf("--rsync "); }
       fileflags[8] = O_RSYNC;
+      in_fileflags = 1;
       break;
     case 's': //sync fileflags[9]
       if (verbose) { printf("--sync "); }
       fileflags[9] = O_SYNC;
+      in_fileflags = 1;
       break;
     case 'u': //trunc fileflags[10]
       if (verbose) { printf("--trunc "); }
       fileflags[10] = O_TRUNC;
+      in_fileflags = 1;
       break;
     
     case 'h': // abort
+      in_fileflags = 0;
       if(verbose) { printf("--abort\n"); }
       if(!ignore_sigsegv)
         raise(SIGSEGV);
       break;
 
     case 'i': // default
+      in_fileflags = 0;
       if(verbose) {printf("--default %s\n", optarg);}
       signal(atoi(optarg), SIG_DFL);
       break;
 
     case 'j': // catch
+      in_fileflags = 0;
       if(verbose) {printf("--catch %s\n", optarg);}
       signal(atoi(optarg), &catch);
       break;
       
     case 'k': // ignore
+      in_fileflags = 0;
       if(verbose) {printf("--ignore %s\n", optarg);}
       if(atoi(optarg) == 11)
         ignore_sigsegv = 1;
@@ -258,6 +302,7 @@ int main(int argc, char **argv) {
       break;
 
     case 'm': // pause
+      in_fileflags = 0;
       if(verbose) {printf("--pause\n");}
       pause();
       break;
@@ -265,7 +310,7 @@ int main(int argc, char **argv) {
     case 'r': // read only 
     case 'w': // write only
     case 'g': { //read and write
-      
+      in_fileflags = 0;
       // open flag holds all open flags
       int oflag;
    		
@@ -317,10 +362,18 @@ int main(int argc, char **argv) {
       int k;
       for (k = 0; k < 11; k++) { fileflags[k] = 0;}
       
+      if (profile) {
+        getrusage(RUSAGE_SELF, e_usage);
+        user_time = getUserTimeDif(s_usage, e_usage);
+        sys_time = getSysTimeDif(s_usage, e_usage);
+        printf("CPU time: %lld\t User time: %lld\n", sys_time, user_time);
+      }
+
       break;
     }
 
     case 'o': // close N (closes file descriptor N)
+      in_fileflags = 0;
       if (verbose) { printf("--close %s\n", optarg); }
       if (isDigit(optarg)) {
         int i = atoi(optarg);
@@ -335,6 +388,7 @@ int main(int argc, char **argv) {
       break;
 
     case 'c': { // command (format: --command i o e cmd args_array)
+      in_fileflags = 0;
       int i, o, e; // stdin, stdout, stderr
 
       //store the file descripter numbers and check for errors
@@ -411,32 +465,6 @@ int main(int argc, char **argv) {
         dup2(fd_array[o], 1);
         dup2(fd_array[e], 2);
 
-        // // close unused pipes
-        // if (isPipe(i, pipes, pipes_cur)) {
-        //   if (isPipe(i+1, pipes, pipes_cur)) { 
-        //     if (fcntl(fd_array[i+1], F_GETFD) != -1 || errno != EBADF)
-        //       close(fd_array[i+1]); 
-        //   } 
-        //   // else error handling if input isn't from read end of pipe
-        // }
-        // if (isPipe(o, pipes, pipes_cur)) {
-        //   if (isPipe(o-1, pipes, pipes_cur)) { 
-        //     if (fcntl(fd_array[o-1], F_GETFD) != -1 || errno != EBADF)
-        //       close(fd_array[o-1]); 
-        //   } 
-        //   // else error handling if output isn't from write end of pipe
-        // }
-        // if (isPipe(e, pipes, pipes_cur)) {
-        //   if (isPipe(e-1, pipes, pipes_cur)) { 
-        //     if (fcntl(fd_array[e-1], F_GETFD) != -1 || errno != EBADF)
-        //       close(fd_array[e-1]); 
-        //   } 
-        //   // else error handling if output isn't from write end of pipe
-        // }
-        // close(fd_array[i]);
-        // close(fd_array[o]);
-        // close(fd_array[e]);
-
         // Close all used file descriptors
         fd_array_cur--;
         while (fd_array_cur >= 0) {
@@ -458,6 +486,7 @@ int main(int argc, char **argv) {
     }
 
     case 'p': { // pipe
+      in_fileflags = 0;
       if (verbose) { printf("--pipe\n"); }
 
       int fd[2];
@@ -489,24 +518,21 @@ int main(int argc, char **argv) {
     }
      
     case 'v': // verbose
+      in_fileflags = 0;
       verbose = 1;
+      break;
+
+    case 'f': // profile
+      in_fileflags = 0;
+      profile = 1;
       break;
       
     case 'z':  { // wait
+      in_fileflags = 0;
       if (verbose) { printf("--wait\n"); }
       int status;
       pid_t returnedPid;
       int waitStatus;
-
-      // Close all pipes descriptors
-      // int k = 0;
-      // while (k < fd_array_cur) {
-      //   if (isPipe(k, pipes, num_pipe_fd)) {
-      //     if (fcntl(fd_array[k], F_GETFD) != -1 || errno != EBADF)
-      //       close(fd_array[k]);
-      //   }
-      //   fd_array_cur++;
-      // }
 
       // Close all used file descriptors
       fd_array_cur--;
@@ -550,7 +576,8 @@ int main(int argc, char **argv) {
      
     case '?': // ? returns when doesn't recognize option character
     default:
-        fprintf(stderr, "Error: ?? getopt returned character code 0%o ??\n", c);
+      in_fileflags = 0;
+      fprintf(stderr, "Error: ?? getopt returned character code 0%o ??\n", c);
     }
     // Free arguments array for next command
     free(args_array);

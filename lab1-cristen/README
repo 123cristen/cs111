@@ -1,12 +1,12 @@
 README
 
 CS 111 Operating Systems Principles, Winter 2016
-Cristen Anderson <904400797> and Kim Svatos <604425426>
+Cristen Anderson <904400797>
 
 Lab 1
 
-This submission is for lab 1B, which is the second part of lab 1. 
-All the options specified will work, except --profile.
+This submission is for lab 1C, which is the final part of lab 1. 
+All the options specified will work.
 
 It can be built using make, and run using ./simpsh 
 
@@ -17,8 +17,17 @@ correct file descriptors before calling wait is also not ideal.
 
 We saved the pipe file descriptors in a separate array so that the we could
 close the unused end of the pipe when a child process was forked, but this
-version did not work (it is currently commented out) so we closed all file
-descriptors in the child process instead.
+version did not work so we closed all file descriptors in the child process instead.
+
+In my implementation of profile, I made a tradeoff for performance rather than 
+robustness in the way it works with fileflags. Rather than polling getrusage
+for every file flag, I only polled it at the first one, and then got the 
+difference between that and another poll at the end of opening the file. 
+This means that if the input is buggy, and there is a fileflag that doesn't
+end in opening a file, its rusage will be combined with the fileflag. 
+For example, ./simpsh --profile ... --append --command ... will combine
+the resource usage for append and command in its output.
+
 
 Our testing is in test.sh, which can be invoked using "make check".
 
