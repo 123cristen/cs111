@@ -129,7 +129,7 @@ long long getSysTimeDif(struct rusage *start, struct rusage* end) {
   return endTime-startTime;
 }
 
-void printTime(user_time, sys_time) {
+void printTime(long long user_time, long long sys_time) {
   printf("CPU time: %lld\t us User time: %lld us\n", sys_time, user_time);
 }
 
