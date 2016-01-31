@@ -121,6 +121,14 @@ if [ $? -ne 0 ]
 		exit 1
 fi
 
+# Test 10: wait on one command
+./simpsh --verbose --rdonly a --wronly b --wronly c --pipe --command 0 4 2 cat - - --close 4 --wait=0 --command 3 1 2 cat - - --close 3 --wait
+if [ $? -ne 0 ]
+	then 	
+		echo "Test 10: failure: wait on one command should work"
+		exit 1
+fi
+
 echo "All tests succeeded"
 
 # Delete temp files
