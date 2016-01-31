@@ -123,7 +123,7 @@ if [ $? -ne 0 ]
 fi
 
 # Test 10: wait on one command
-./simpsh --verbose --rdonly a --wronly b --wronly c --pipe --command 0 4 2 cat - - --close 4 --wait=0 --command 3 1 2 cat - - --close 3 --wait
+./simpsh --verbose --rdonly a --wronly b --wronly c --pipe --command 0 4 2 cat - - --close 4 --wait=0 --command 3 1 2 cat - - --close 3 --wait > /dev/null
 if [ $? -ne 0 ]
 	then 	
 		echo "Test 10: failure: wait on one command should work"
