@@ -13,90 +13,121 @@ b=/tmp/b || exit 1
 c=/tmp/c || exit 1
 d=/tmp/d || exit 1
 e=/tmp/e || exit 1
-> "$a"
-> "$b"
-> "$c"
-> "$d"
-# a=$(mktemp /tmp/a.XXXXXXXXXX) || exit 1
-# b=$(mktemp /tmp/b.XXXXXXXXXX) || exit 1
-# c=$(mktemp /tmp/c.XXXXXXXXXX) || exit 1
-# d=$(mktemp /tmp/d.XXXXXXXXXX) || exit 1
 
+# give files content
+echo "HERE IS SOME TEST TEXT FOR FILE A" > $a
+> $b
+> $c
+> $d
+> $e
 
-# for lab 1a
-echo "hello from file a" > $a
+# Test 1: open invalid file
+./simpsh --rdonly noFile 2>&1 | grep "Error: open returned unsuccessfully" > /dev/null
+if [ $? -ne 0 ]
+	then 
+		echo "Test 1: failure: --rdonly should not open invalid filename"
+		exit 1
+fi
 
-# --rdonly
-./simpsh --rdonly noFile 2>&1 | grep "Error: open returned unsuccessfully" > /dev/null ||{ echo "FAIL: --rdonly: report invalid filename."; exit 1; }
-
-# --wronly
-./simpsh --wronly noFile 2>&1 | grep "Error: open returned unsuccessfully" > /dev/null || { echo "FAIL: --wronly: report invalid filename"; exit 1; }
-
-# --command
-
+# Test 2: simple command
 ./simpsh --rdonly $a --wronly $b --wronly $c --command 0 1 2 cat -
-> "$c"
-> "$d"
 cat $a > $c
 cat $b > $d
-diff -u $c $d > /dev/null || { echo "FAIL: --command: execute simple command 'cat' "; exit 1;}
+diff -u $c $d > /dev/null
+if [ $? -ne 0 ]
+	then 
+		echo "Test 2: failure: --command should execute simple command 'cat'"
+		exit 1
+fi
+> $b
+> $c
+> $d
 
+# Test 3: report invalid file descriptor
+./simpsh --command 0 1 2 echo "hi" 2>&1 | grep "initiation" > /dev/null
+if [ $? -ne 0 ]
+	then 
+		echo "Test 3: failure: --command should report uninitialized file descriptor"
+		exit 1
+fi
 
-> "$c"
-./simpsh --rdonly $a --rdonly $b --wronly $c --command 0 1 2 cat -
+> $c
+echo "hi" > $b
 
-./simpsh --command 0 1 2 echo "hi" 2>&1 | grep "initiation" > /dev/null || { echo "FAIL: --command: report uninitialized file descriptor"; exit 1;}
+# Test 4: write to read only file
+# ./simpsh --rdonly $a --rdonly $b --wronly $c --command 0 1 2 cat - -
+# grep "Bad file descriptor" < $c > /dev/null
+# if [ $? -ne 0 ]
+# 	then
+# 		echo "Test 4: failure: --command should not write to read only file"
+# 		exit 1
+# fi
+# > $b
+# > $c
 
-# To prevent race condition, let the next command run first...
-cat $c | grep "Bad file descriptor" > /dev/null || { echo "FAIL: --rdonly: Error on writing to read_only file"; exit 1; }
+# Test 5: correct number/type of arguments
+./simpsh --rdonly $a --wronly $b --wronly $c --command 0 1 cat - 2>&1 | grep "Error: Incorrect usage of --command. Requires integer argument." > /dev/null
+if [ $? -ne 0 ]
+	then 
+		echo "Test 5: failure: --command should have correct number of arguments"
+		exit 1
+fi
+> $b
+> $c
 
-./simpsh --rdonly $a --wronly $b --wronly $c --command 0 1 cat - 2>&1 | grep "Error: Incorrect usage of --command. Requires integer argument." > /dev/null || { echo "FAIL: --command: report none digit file descriptor"; exit 1;}
-
-./simpsh --rdonly $a --wronly $b --wronly $c --command 0 1 2 3 cat - 2>&1 > /dev/null
-cat $c |grep "Error: Unknown command"  > /dev/null || { echo "FAIL: --command: report invalid number of arguments"; exit 1; }
-
-./simpsh --command 0 1 2 echo "hi" 2>&1 | grep "Error: Invalid use of file descriptor" > /dev/null || { echo "FAIL: --command: report invalid use of file descriptor"; exit 1;}
-
-
-# --verbose
-
+# Test 6: verbose prints options
 ./simpsh --verbose --rdonly $a --wronly $b --wronly $c --command 0 1 2 cat - > $d
 echo '--rdonly /tmp/a ' > $e; echo '--wronly /tmp/b ' >> $e; echo '--wronly /tmp/c ' >> $e; echo '--command 0 1 2 cat - ' >> $e
-diff -u $d $e > /dev/null || { echo "FAIL: --verbose: valid output when verbose is in the beginning"; exit 1;}
+diff -u $d $e > /dev/null 
+if [ $? -ne 0 ]
+	then 
+		echo "Test 6: failure: --verbose should print options"
+		exit 1
+fi
+echo "hello" > "$b"
+echo "hello" > "$c"
+> $d
+> $e
 
-./simpsh --rdonly $a --wronly $b --verbose --wronly $c --command 0 1 2 cat - > $d
-echo '--wronly /tmp/c ' > $e; echo '--command 0 1 2 cat - ' >> $e
-diff -u $d $e > /dev/null || { echo "FAIL: --verbose: valid output when verbose is in the middle of arguments"; exit 1;}
 
+# Test 7: file flags correctly passed to open()
+# ./simpsh --trunc --rdonly $a --append --wronly $c --wronly $d --command 0 1 2 cat - -
+# diff -u $b $c > /dev/null
+# if [ $? -ne 0 ]
+# 	then 
+# 		echo "Test 7: failure: --trunc should be passed to open()"
+# 		exit 1
+# fi
+# > $b
+# > $c
+# > $d
 
-# delete temp files
-rm "$a"
-rm "$b"
-rm "$c"
+# Test 8: pipe should pass commands correctly
+./simpsh --rdonly $a --wronly $b --wronly $c --pipe --command 0 4 2 cat - - \
+--command 3 1 2 cat - - --wait > /dev/null
+if [ $? -ne 0 ]
+	then 
+		echo "Test 8: failure: --pipe should pass content correctly"
+		exit 1
+fi
+
+# Test 9: command given in spec should work
+./simpsh --rdonly $a --pipe --pipe --creat --trunc --wronly $c \
+--creat --append --wronly $d --command 3 5 6 tr A-Z a-z \
+--command 0 2 6 sort --command 1 4 6 cat $b - --wait > /dev/null
+if [ $? -ne 0 ]
+	then 	
+		echo "Test 9: failure: command in the spec should work"
+		exit 1
+fi
+
+echo "All tests succeeded"
+
+# Delete temp files
+rm $a
+rm $b
+rm $c
+rm $d
+rm $e
 
 exit 0
-
-########################################## ##################### ##################### 
-#
-#    Kim's tests for the flags
-#
-###################### ##################### ##################### ##################### 
-
-# for truncate
-# emacs a (write gibberish)
-# ./simpsh --trunc --wronly a, check that a is now empty aka truncated
-
-#for append
-#emacs a (write gibberish)
-# ./simpsh --rdonly a --append --wronly b --wronly c  --command 0 1 2 cat - - --command 0 1 2 cat - - 
-
-#for directory
-# emacs a (gibberish) 
-# ./simpsh --directory --rdonly a --creat --trunc --wronly b --creat --wronly c --command 0 1 2 cat - - 
-
-
-# test for pipe: create a, b, c in advance
-# --rdonly a --wronly b --wronly c --pipe --command 0 4 2 cat - - --command 3 1 2 cat - -
-
-# test 
-# ./simpsh --verbose --rdonly a --wronly b --wronly c --pipe --command 0 4 2 cat - - --close 4 --wait=0 --command 3 1 2 cat - - --close 3 --wait
