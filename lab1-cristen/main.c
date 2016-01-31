@@ -18,7 +18,7 @@ See README for further information
 #include <math.h>
 #define _GNU_SOURCE
 
-int O_RSYNC = 1;
+//int O_RSYNC = 1;
 
 // holds the indices for start and end of a command in argv,
   // so they can be printed out after wait. 
