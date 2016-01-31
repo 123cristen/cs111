@@ -104,7 +104,7 @@ echo "hello" > "$c"
 
 # Test 8: pipe should pass commands correctly
 ./simpsh --rdonly $a --wronly $b --wronly $c --pipe --command 0 4 2 cat - - \
---command 3 1 2 cat - - --wait > /dev/null
+--command 3 1 2 cat - - --close 3 --close 4 --wait > /dev/null
 if [ $? -ne 0 ]
 	then 
 		echo "Test 8: failure: --pipe should pass content correctly"
@@ -114,7 +114,8 @@ fi
 # Test 9: command given in spec should work
 ./simpsh --rdonly $a --pipe --pipe --creat --trunc --wronly $c \
 --creat --append --wronly $d --command 3 5 6 tr A-Z a-z \
---command 0 2 6 sort --command 1 4 6 cat $b - --wait > /dev/null
+--command 0 2 6 sort --command 1 4 6 cat $b - --close 1 --close 2 \
+--close 3 --close 4 --wait > /dev/null
 if [ $? -ne 0 ]
 	then 	
 		echo "Test 9: failure: command in the spec should work"
