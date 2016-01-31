@@ -60,17 +60,17 @@ fi
 echo "something" >> "$a"
 
 # Test 4: write to read only file
-./simpsh --rdonly $a --rdonly $b --wronly $c --command 0 1 2 cat - 
-cat $c | grep "Bad file descriptor" > /dev/null
-if [ $? -eq 0 ]
-	then 
-		echo "Test 4: success"	
-	else
-		echo "Test 4: failure: --command should not write to read only file"
-		exit 1
-fi
-> "$b"
-> "$c"
+# ./simpsh --rdonly $a --rdonly $b --wronly $c --command 0 1 2 cat - 
+# cat "$c" | grep "Bad file descriptor" > /dev/null
+# if [ $? -eq 0 ]
+# 	then 
+# 		echo "Test 4: success"	
+# 	else
+# 		echo "Test 4: failure: --command should not write to read only file"
+# 		exit 1
+# fi
+# > "$b"
+# > "$c"
 
 # Test 5: correct number/type of arguments
 ./simpsh --rdonly $a --wronly $b --wronly $c --command 0 1 cat - 2>&1 | grep "Error: Incorrect usage of --command. Requires integer argument." > /dev/null
@@ -102,13 +102,36 @@ fi
 
 # Test 7: file flags correctly passed to open()
 echo "'a' has content" > $a
-./simpsh --trunc --rdwr $a
+./simpsh --trunc --rdonly $a
 diff -u $a $b > /dev/null
 if [ $? -eq 0 ]
 	then 
 		echo "Test 7: success"	
 	else
 		echo "Test 7: failure: --trunc should be passed to open()"
+		exit 1
+fi
+
+# Test 8: pipe should pass commands correctly
+./simpsh --rdonly $a --wronly $b --wronly $c --pipe --command 0 4 2 cat - - \
+--command 3 1 2 cat - - --wait > /dev/null
+if [ $? -eq 0 ]
+	then 
+		echo "Test 8: success"	
+	else
+		echo "Test 8: failure: --pipe should pass content correctly"
+		exit 1
+fi
+
+# Test 9: command given in spec should work
+./simpsh --rdonly $a --pipe --pipe --creat --trunc --wronly $c \
+--creat --append --wronly $d --command 3 5 6 tr A-Z a-z \
+--command 0 2 6 sort --command 1 4 6 cat $b - --wait > /dev/null
+if [ $? -eq 0 ]
+	then 
+		echo "Test 9: success"	
+	else
+		echo "Test 9: failure: command in the spec should work"
 		exit 1
 fi
 
@@ -122,23 +145,3 @@ rm "$d"
 rm "$e"
 
 exit 0
-
-########################################## ##################### ##################### 
-#
-#    Kim's tests for the flags
-#
-###################### ##################### ##################### ##################### 
-
-#for append
-#emacs a (write gibberish)
-# ./simpsh --rdonly a --append --wronly b --wronly c  --command 0 1 2 cat - - --command 0 1 2 cat - - 
-
-#for directory
-# emacs a (gibberish) 
-# ./simpsh --directory --rdonly a --creat --trunc --wronly b --creat --wronly c --command 0 1 2 cat - - 
-
-
-# test for pipe: create a, b, c in advance
-# --rdonly a --wronly b --wronly c --pipe --command 0 4 2 cat - - --command 3 1 2 cat - -
-
-
