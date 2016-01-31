@@ -14,7 +14,7 @@ c=/tmp/c || exit 1
 d=/tmp/d || exit 1
 e=/tmp/e || exit 1
 # give files content
-echo "Here is a file" > "$a"
+echo "Here is a file" > $a
 > "$b"
 > "$c"
 > "$d"
@@ -56,8 +56,11 @@ if [ $? -eq 0 ]
 		exit 1
 fi
 
+> "$c"
+echo "something" >> "$a"
+
 # Test 4: write to read only file
-./simpsh --rdonly $a --rdonly $b --wronly $c --command 0 1 2 cat -
+./simpsh --rdonly $a --rdonly $b --wronly $c --command 0 1 2 cat - 
 cat $c | grep "Bad file descriptor" > /dev/null
 if [ $? -eq 0 ]
 	then 
