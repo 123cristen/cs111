@@ -18,7 +18,7 @@ See README for further information
 #include <math.h>
 #define _GNU_SOURCE
 
-//int O_RSYNC = 1;
+int O_RSYNC = 1;
 
 // holds the indices for start and end of a command in argv,
   // so they can be printed out after wait. 
@@ -472,15 +472,12 @@ int main(int argc, char **argv) {
 
       //check if i,o,e fd are valid 
       if(!(validFd(i,fd_array_cur, fd_array))) {
-        fprintf(stderr, "Invalid file descriptor: %d\n", i);
         break;
       }
       if(!(validFd(o,fd_array_cur, fd_array))) {
-        fprintf(stderr, "Invalid file descriptor: %d\n", o);
         break;
       }
       if(!(validFd(e,fd_array_cur, fd_array))) {
-        fprintf(stderr, "Invalid file descriptor: %d\n", e);
         break;
       } 
         

@@ -13,12 +13,13 @@ b=/tmp/b || exit 1
 c=/tmp/c || exit 1
 d=/tmp/d || exit 1
 e=/tmp/e || exit 1
+
 # give files content
-echo "Here is a file" > $a
-> "$b"
-> "$c"
-> "$d"
-> "$e"
+echo "HERE IS SOME TEST TEXT FOR FILE A" > $a
+> $b
+> $c
+> $d
+> $e
 
 # Test 1: open invalid file
 ./simpsh --rdonly noFile 2>&1 | grep "Error: open returned unsuccessfully" > /dev/null
@@ -57,20 +58,20 @@ if [ $? -eq 0 ]
 fi
 
 > "$c"
-echo "something" >> "$a"
+echo "hi" > "$b"
 
 # Test 4: write to read only file
-# ./simpsh --rdonly $a --rdonly $b --wronly $c --command 0 1 2 cat - 
-# cat "$c" | grep "Bad file descriptor" > /dev/null
-# if [ $? -eq 0 ]
-# 	then 
-# 		echo "Test 4: success"	
-# 	else
-# 		echo "Test 4: failure: --command should not write to read only file"
-# 		exit 1
-# fi
-# > "$b"
-# > "$c"
+./simpsh --rdonly $a --rdonly $b --wronly $c --command 0 1 2 cat - -
+grep "Bad file descriptor" < $c > /dev/null
+if [ $? -eq 0 ]
+	then 
+		echo "Test 4: success"	
+	else
+		echo "Test 4: failure: --command should not write to read only file"
+		exit 1
+fi
+> "$b"
+> "$c"
 
 # Test 5: correct number/type of arguments
 ./simpsh --rdonly $a --wronly $b --wronly $c --command 0 1 cat - 2>&1 | grep "Error: Incorrect usage of --command. Requires integer argument." > /dev/null
@@ -95,15 +96,15 @@ if [ $? -eq 0 ]
 		echo "Test 6: failure: --verbose should print options"
 		exit 1
 fi
-> "$b"
-> "$c"
+echo "hello" > "$b"
+echo "hello" > "$c"
 > "$d"
 > "$e"
 
+
 # Test 7: file flags correctly passed to open()
-echo "'a' has content" > $a
-./simpsh --trunc --rdonly $a
-diff -u $a $b > /dev/null
+./simpsh --trunc --rdonly $a --append --wronly $c --wronly $d --command 0 1 2 cat - -
+diff -u $b $c > /dev/null
 if [ $? -eq 0 ]
 	then 
 		echo "Test 7: success"	
@@ -111,6 +112,9 @@ if [ $? -eq 0 ]
 		echo "Test 7: failure: --trunc should be passed to open()"
 		exit 1
 fi
+> "$b"
+> "$c"
+> "$d"
 
 # Test 8: pipe should pass commands correctly
 ./simpsh --rdonly $a --wronly $b --wronly $c --pipe --command 0 4 2 cat - - \
