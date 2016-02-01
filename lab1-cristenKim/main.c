@@ -543,7 +543,7 @@ int main(int argc, char **argv) {
         }
        
       }
-      else //OPTARG IS NOT NULL, WE ARE WAITING ON AN INDIVIDUAL
+      else //OPTARG IS NOT NULL, WE ARE WAITING ON AN INDIVIDUAL COMMAND
     	{
     	  if(verbose) { printf("--wait=%s\n", optarg); }
     	  
