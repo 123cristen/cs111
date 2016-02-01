@@ -498,25 +498,68 @@ int main(int argc, char **argv) {
       int waitStatus;
 
       if(optarg == NULL){
-      if (verbose) { printf("--wait\n"); }
-     
-      // Close all pipes descriptors
-      // int k = 0;
-      // while (k < fd_array_cur) {
-      //   if (isPipe(k, pipes, num_pipe_fd)) {
-      //     if (fcntl(fd_array[k], F_GETFD) != -1 || errno != EBADF)
-      //       close(fd_array[k]);
-      //   }
-      //   fd_array_cur++;
-      // }
+        if (verbose) { printf("--wait\n"); }
+       
+        // Close all pipes descriptors
+        // int k = 0;
+        // while (k < fd_array_cur) {
+        //   if (isPipe(k, pipes, num_pipe_fd)) {
+        //     if (fcntl(fd_array[k], F_GETFD) != -1 || errno != EBADF)
+        //       close(fd_array[k]);
+        //   }
+        //   fd_array_cur++;
+        // }
 
-     
+       
 
-      while (1) {
-        //wait for any child process to finish. 0 is for blocking.
-        returnedPid = waitpid(-1, &status, 0);
-        
-        //WEXITSTATUS returns the exit status of the child.
+        while (1) {
+          //wait for any child process to finish. 0 is for blocking.
+          returnedPid = waitpid(-1, &status, 0);
+          
+          //WEXITSTATUS returns the exit status of the child.
+          waitStatus = WEXITSTATUS(status);
+
+          // break if no remaining processes to wait for
+          if (returnedPid == -1) { break; }
+
+          // sets exit status to the maximum of all exit statuses
+          if (waitStatus > exit_status) {
+            exit_status = waitStatus;
+          }
+
+          // print the exit status and arguments of exited process
+          printf("%d ", waitStatus);
+          int j = 0;
+          int i;
+          while(j < cmd_info_cur) {
+            if (commands[j].pid == returnedPid) {
+              for (i = commands[j].cmd_start; i < commands[j].cmd_end; i++) {
+                printf("%s ", argv[i]);
+              }
+              break;              
+            } else { j++; }
+          }
+          printf("\n");
+        }
+       
+      }
+      else //OPTARG IS NOT NULL, WE ARE WAITING ON AN INDIVIDUAL
+    	{
+    	  if(verbose) { printf("--wait=%s\n", optarg); }
+    	  
+        if (commands[atoi(optarg)].pid == -1) {
+          // exit if command was already waited for
+          break;
+        }
+
+        returnedPid = waitpid(commands[atoi(optarg)].pid, &status, 0);
+      
+        if (atoi(optarg) >= cmd_info_cur) {
+          fprintf(stderr, "Error: must be a valid command index\n");
+          break;
+        }
+
+       //WEXITSTATUS returns the exit status of the child.
         waitStatus = WEXITSTATUS(status);
 
         // break if no remaining processes to wait for
@@ -529,58 +572,15 @@ int main(int argc, char **argv) {
 
         // print the exit status and arguments of exited process
         printf("%d ", waitStatus);
-        int j = 0;
+        int j = atoi(optarg);
         int i;
-        while(j < cmd_info_cur) {
-          if (commands[j].pid == returnedPid) {
-            for (i = commands[j].cmd_start; i < commands[j].cmd_end; i++) {
+        for (i = commands[j].cmd_start; i < commands[j].cmd_end; i++) {
               printf("%s ", argv[i]);
-            }
-            break;              
-          } else { j++; }
-        }
+        }  
         printf("\n");
-      }
-     
-    }
-    else //OPTARG IS NOT NULL, WE ARE WAITING ON AN INDIVIDUAL
-  	{
-  	  if(verbose) { printf("--wait=%s\n", optarg); }
-  	  
-      if (commands[atoi(optarg)].pid == -1) {
-        // exit if command was already waited for
+        commands[j].pid = -1;
+    	}
         break;
-      }
-
-      returnedPid = waitpid(commands[atoi(optarg)].pid, &status, 0);
-    
-      if (atoi(optarg) >= cmd_info_cur) {
-        fprintf(stderr, "Error: must be a valid command index\n");
-        break;
-      }
-
-     //WEXITSTATUS returns the exit status of the child.
-      waitStatus = WEXITSTATUS(status);
-
-      // break if no remaining processes to wait for
-      if (returnedPid == -1) { break; }
-
-      // sets exit status to the maximum of all exit statuses
-      if (waitStatus > exit_status) {
-        exit_status = waitStatus;
-      }
-
-      // print the exit status and arguments of exited process
-      printf("%d ", waitStatus);
-      int j = atoi(optarg);
-      int i;
-      for (i = commands[j].cmd_start; i < commands[j].cmd_end; i++) {
-            printf("%s ", argv[i]);
-      }  
-      printf("\n");
-      commands[j].pid = -1;
-  	}
-      break;
     }
      
     case '?': // ? returns when doesn't recognize option character
