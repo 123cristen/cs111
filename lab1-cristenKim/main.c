@@ -499,19 +499,6 @@ int main(int argc, char **argv) {
 
       if(optarg == NULL){
         if (verbose) { printf("--wait\n"); }
-       
-        // Close all pipes descriptors
-        // int k = 0;
-        // while (k < fd_array_cur) {
-        //   if (isPipe(k, pipes, num_pipe_fd)) {
-        //     if (fcntl(fd_array[k], F_GETFD) != -1 || errno != EBADF)
-        //       close(fd_array[k]);
-        //   }
-        //   fd_array_cur++;
-        // }
-
-       
-
         while (1) {
           //wait for any child process to finish. 0 is for blocking.
           returnedPid = waitpid(-1, &status, 0);
