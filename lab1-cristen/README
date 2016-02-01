@@ -26,17 +26,51 @@ end in opening a file, its rusage will be combined with the fileflag.
 For example, ./simpsh --profile ... --append --command ... will combine
 the resource usage for append and command in its output.
 
-For our implementation of wait, --wait must be the last option specified because
+For my implementation of wait, --wait must be the last option specified because
 it will close all of the pipes, to solve the infinite waiting problem.
 This is not ideal, but the alternative of requiring the user to close the
 correct file descriptors before calling wait is also not ideal. 
 
-We saved the pipe file descriptors in a separate array so that the we could
+I saved the pipe file descriptors in a separate array so that I could
 close the unused end of the pipe when a child process was forked, but this
-version did not work so we closed all file descriptors in the child process instead.
+version did not work so I closed all file descriptors in the child process instead.
 
-Our testing is in test.sh, which can be invoked using "make check".
+My testing is in test.sh, which can be invoked using "make check".
 
-We implemented the Makefile such that the user can use "make", "make check",
-"make clean", "make dist" as specified in the spec. There are currently
-no tests run for "make dist". 
+My benchmarks for testing in bash were as follows:
+cat a | sed "s/a/\n/g" | sort | grep b > o
+cat a | sed "s/a/\n/g" | uniq > o
+cat a | sed "s/a/\n/g" | tr 'a-z' 'A-Z' > o
+
+These were ran with the time command to assess performance.
+The execline translation of these benchmarks is as follows:
+redirfd -w 1 o pipeline { pipeline { pipeline { cat a } sed s/a/\\n/g } sort } \
+grep b
+redirfd -w 1 o pipeline { pipeline { cat a } sed s/a/\\n/g } uniq
+redirfd -w 1 o pipeline { pipeline { cat a } sed s/a/\\n/g } tr 'a-z' 'A-Z'
+
+These commands were timed using "time ./execline", where execline is a script
+file containing one of these benchmarks. A sample execline script is included
+in this submission.
+
+Finally, the simpsh version of these commands is:
+./simpsh --rdonly a --wronly o --wronly e --pipe --pipe --pipe \
+--command 0 4 2 cat a --command 3 6 2 sed "s/a/\n/g" --command 5 8 2 sort \
+--command 7 1 2 grep b --wait
+
+./simpsh --rdonly a --wronly o --wronly e --pipe --pipe --command 0 4 2 cat - \
+--command 3 6 2 sed "s/a/\n/g" --command 5 1 2 uniq --wait
+
+./simpsh --rdonly a --wronly o --wronly e --pipe --pipe --command 0 4 2 cat - \
+--command 3 6 2 sed "s/a/\n/g" --command 5 1 2 tr 'a-z' 'A-Z' --wait
+
+
+I ran these benchmarks in simpsh with --profile enabled for timing.
+These are also included in test.sh to be run using make check.
+
+In order to run the benchmarks, a big file called 'a' must be created.
+This was done using the following command:
+$ base64 /dev/urandom | head -c 100000000 > a
+The benchmarks also require an output file o, and error file e, created using:
+$ touch o
+$ touch e
