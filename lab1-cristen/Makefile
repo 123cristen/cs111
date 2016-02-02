@@ -1,14 +1,14 @@
-# Makefile. CS111 Lab 1a
+# Makefile. CS111 Lab 1c
 
 CC = gcc
 #CFLAGS =
-DISTDIR=lab1-cristenKim
+DISTDIR=lab1-cristen
 default: simpsh
 
 simpsh: main.c 
 	$(CC) main.c -o $@
 
-dist: lab1-cristenKim.tar.gz
+dist: lab1-cristen.tar.gz
 
 submission_files = README main.c Makefile test.sh execline a o e report.pdf
 
