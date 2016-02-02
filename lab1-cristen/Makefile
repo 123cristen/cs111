@@ -10,7 +10,7 @@ simpsh: main.c
 
 dist: lab1-cristenKim.tar.gz
 
-submission_files = README main.c Makefile test.sh
+submission_files = README main.c Makefile test.sh execline a o e
 lab1-cristenKim.tar.gz: $(submission_files)
 	tar -czf $@ --transform='s,^,$(DISTDIR)/,' $(submission_files)  
 
