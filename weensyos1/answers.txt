@@ -1,11 +1,33 @@
-Name:
-UCLA ID:
+Name: Cristen Anderson
+UCLA ID: 904400797
 
-
+WEENSYOS1
 -------------------------------------------------------------------------------
 
 Response to Exercise 1:
+No, sys_getpid() would not return the correct value. This
+is because though the eax register is set, calling 
+schedule() means another process could run and overwrite
+the correct value in eax. 
 
+Response to Exercise 2:
+I implemented the functions in mpos-kern.c as described
+in the specification. See the code for more details.
+
+Response to Exercise 3:
+I implemented a blocking wait by adding another variable
+called wait_on to the process descriptor, which stores
+the pid that the process is waiting on. Then I changed
+the exit function so that it would set any processes waiting
+on the exiting function to be runnable again. Finally, I
+changed the wait function so that it changed the calling
+process's status to blocked and assigned the wait_on
+variable.
+
+Response to Exercise 4:
+The bug was that old process IDs were not being set to empty
+after they had exited. I fixed this by changing the exit function
+to change the state of the process ID back to empty.
 
 
 Anything else you'd like us to know:

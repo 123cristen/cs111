@@ -28,6 +28,7 @@ start(void)
 		app_printf("Main process %d!\n", sys_getpid());
 		do {
 			status = sys_wait(p);
+			app_printf("W");
 		} while (status == WAIT_TRYAGAIN);
 		app_printf("Child %d exited with status %d!\n", p, status);
 
