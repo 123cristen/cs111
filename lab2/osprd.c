@@ -17,8 +17,6 @@
 #include "spinlock.h"
 #include "osprd.h"
 
-#include <asm/uaccess.h>
-
 /* The size of an OSPRD sector. */
 #define SECTOR_SIZE	512
 
@@ -101,6 +99,27 @@ static osprd_info_t osprds[NOSPRD];
 
 
 // Declare useful helper functions
+
+/* 
+* next_valid_ticket(invalid, ticket_head)
+* Returns the next valid executable ticket
+*/
+unsigned next_valid_ticket(struct invalid_list* invalid, unsigned ticket_head) {
+	if (invalid->num == -1) 
+		return ticket_head;
+	struct invalid_list* list = invalid;
+	while (1) {
+		if (ticket_head == list->num) {
+			ticket_head++;
+			list = invalid;
+			continue;
+		}
+		if (list->next == NULL) {
+			return ticket_head;
+		}
+		list = list->next;
+	}
+}
 
 /*
 * add_to_invalid(list, ticket)
