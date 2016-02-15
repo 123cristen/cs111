@@ -285,7 +285,7 @@ static int osprd_close_last(struct inode *inode, struct file *filp)
 	if (filp) {
 		osprd_info_t *d = file2osprd(filp);
 		int filp_writable = filp->f_mode & FMODE_WRITE;
-
+		eprintk("Releasing...close_last\n");
 		// EXERCISE: If the user closes a ramdisk file that holds
 		// a lock, release the lock.  Also wake up blocked processes
 		// as appropriate.
@@ -485,7 +485,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 
 		// Your code here (instead of the next line).
 		// r = -ENOTTY;
-		eprintk("Releasing...\n");
+		eprintk("Releasing...ioctl\n");
 		eprintk("pid: %d\n", current->pid);
 
 		if (filp->f_flags != (filp->f_flags |= F_OSPRD_LOCKED))
