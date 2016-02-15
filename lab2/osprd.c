@@ -185,7 +185,7 @@ void remove_from_read(struct pid_list* list, pid_t read_pid) {
 	// Invalidate by setting pid to -1. 
 	if (list->next == NULL) {
 		if (list->pid != read_pid) {
-			eprintk("Invalid list structure!\n");
+			eprintk("Invalid list structure: first node\n");
 			return;
 		}
 		list->pid = -1;
@@ -196,7 +196,7 @@ void remove_from_read(struct pid_list* list, pid_t read_pid) {
 		list = list->next;
 	// If it's null it means read_pid couldn't be found in the list
 	if (list->next == NULL) {
-		eprintk("Invalid list structure!\n");
+		eprintk("Invalid list structure: in the middle\n");
 		return;
 	}
 	// Set the next pointer to the next pointer of the node we want to remove
