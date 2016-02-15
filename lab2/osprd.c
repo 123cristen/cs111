@@ -291,21 +291,21 @@ static int osprd_close_last(struct inode *inode, struct file *filp)
 		// as appropriate.
 
 		// Your code here.
-		if (filp->f_flags == (filp->f_flags |= F_OSPRD_LOCKED)) {
-			filp->f_flags &= ~F_OSPRD_LOCKED;
-			osp_spin_lock(&(d->mutex));
-			if(filp_writable) {
-				//d->write_lock_proc = -1;
-				d->write_lock = 0;
-			}
-			else {
-				//remove_from_read(&(d->read_lock_procs), current->pid);
-				d->read_locks--;
-			}
-			// wake up tasks in wait queue:
-			wake_up_all(&(d->blockq));
-			osp_spin_unlock(&(d->mutex));
-		}
+		// if (filp->f_flags == (filp->f_flags |= F_OSPRD_LOCKED)) {
+		// 	filp->f_flags &= ~F_OSPRD_LOCKED;
+		// 	osp_spin_lock(&(d->mutex));
+		// 	if(filp_writable) {
+		// 		//d->write_lock_proc = -1;
+		// 		d->write_lock = 0;
+		// 	}
+		// 	else {
+		// 		//remove_from_read(&(d->read_lock_procs), current->pid);
+		// 		d->read_locks--;
+		// 	}
+		// 	// wake up tasks in wait queue:
+		// 	wake_up_all(&(d->blockq));
+		// 	osp_spin_unlock(&(d->mutex));
+		// }
 		// This line avoids compiler warnings; you may remove it.
 		// (void) filp_writable, (void) d;
 
@@ -388,7 +388,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		eprintk("write_lock:%d, read_locks: %d\n", d->write_lock, d->read_locks);
 		if (filp_writable) {
 			if(wait_event_interruptible(d->blockq, (my_ticket == d->ticket_head) 
-							&& (d->write_lock == 0) && (d->read_locks = 0)) == -ERESTARTSYS){
+							&& (d->write_lock == 0) && (d->read_locks == 0)) == -ERESTARTSYS){
 				// we enter here when the current task receives a signal before
 				// CONDITION becomes true, and the macro returns -ERESTARTSYS.
 				// if on the ticket_head, set to the next valid ticket, 
