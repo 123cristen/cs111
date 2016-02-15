@@ -398,7 +398,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				// If current ticket is ticket_head, simply set to next ticket,
 					// otherwise ticket is invalidated
 				if (d->ticket_head == my_ticket)
-					d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
+					d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head+1);
 				else add_to_invalid(&(d->invalid_tickets), my_ticket);
 
 				// wake up tasks in wait queue:
@@ -416,7 +416,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 
 				// final settings(we acquired lock): 
 				filp->f_flags |= F_OSPRD_LOCKED;
-				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
+				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head+1);
 				osp_spin_unlock(&(d->mutex));
 				eprintk("Finished acquire. New ticket_head:%d\n", d->ticket_head);
 				r = 0;
@@ -433,7 +433,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				// If current ticket is ticket_head, simply set to next ticket,
 					// otherwise ticket is invalidated
 				if (d->ticket_head == my_ticket)
-					d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
+					d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head+1);
 				else 
 					add_to_invalid(&(d->invalid_tickets), my_ticket);
 
@@ -452,7 +452,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 
 				// final settings(we acquired lock): 
 				filp->f_flags |= F_OSPRD_LOCKED;
-				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
+				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head+1);
 				osp_spin_unlock(&(d->mutex));
 				eprintk("Finished acquire. New ticket_head:%d\n", d->ticket_head);
 				r = 0;
