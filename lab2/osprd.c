@@ -444,11 +444,11 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				eprintk("Getting the lock\n");
 				// We can get the lock!
 				osp_spin_lock(&(d->mutex));
-
+				eprintk("Doing stuff\n");
 				// add ourselves to the read list
 				d->read_locks++; 
 				add_to_read(&(d->read_lock_procs), current->pid);
-				eprintk("Doing stuff\n");
+				
 				// final settings(we acquired lock): 
 				filp->f_flags |= F_OSPRD_LOCKED;
 				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
