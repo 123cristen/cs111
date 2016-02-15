@@ -382,47 +382,82 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		unsigned my_ticket = d->ticket_tail;
 		d->ticket_tail++;
 		osp_spin_unlock(&(d->mutex));
-
-		// Set condition based on whether it is read or write
-		int condition;
-		if (filp_writable) condition = (my_ticket == d->ticket_head) && (d->write_lock == 0) && (d->read_locks = 0);
-		else condition = (my_ticket == d->ticket_head) && (d->write_lock == 0);
 		
 		eprintk("Waiting...\n");
 		eprintk("Ticket head:%d, my_ticket: %d\n", d->ticket_head, my_ticket);
 		eprintk("write_lock:%d, read_locks: %d\n", d->write_lock, d->read_locks);
-		if(wait_event_interruptible(d->blockq, condition) == -ERESTARTSYS){
-			// we enter here when the current task receives a signal before
-			// CONDITION becomes true, and the macro returns -ERESTARTSYS.
-			// if on the ticket_head, set to the next valid ticket, 
-			eprintk("Signal interrupt\n");
-			osp_spin_lock(&(d->mutex));
+		eprintk("Condition:%d\n", condition);
+		if (filp_writable) {
+			if(wait_event_interruptible(d->blockq, (my_ticket == d->ticket_head) 
+							&& (d->write_lock == 0) && (d->read_locks = 0)) == -ERESTARTSYS){
+				// we enter here when the current task receives a signal before
+				// CONDITION becomes true, and the macro returns -ERESTARTSYS.
+				// if on the ticket_head, set to the next valid ticket, 
+				eprintk("Signal interrupt\n");
+				osp_spin_lock(&(d->mutex));
 
-			// If current ticket is ticket_head, simply set to next ticket,
-				// otherwise ticket is invalidated
-			if (d->ticket_head == my_ticket)
+				// If current ticket is ticket_head, simply set to next ticket,
+					// otherwise ticket is invalidated
+				if (d->ticket_head == my_ticket)
+					d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
+				else add_to_invalid(&(d->invalid_tickets), my_ticket);
+
+				// wake up tasks in wait queue:
+				wake_up_all(&(d->blockq));
+				osp_spin_unlock(&(d->mutex));
+				r = -ERESTARTSYS;
+			} else {
+				eprintk("Getting the lock\n");
+				// We can get the lock!
+				osp_spin_lock(&(d->mutex));
+
+				// add ourselves to the write list
+				d->write_lock = 1; 
+				d->write_lock_proc = current->pid;
+
+				// final settings(we acquired lock): 
+				filp->f_flags |= F_OSPRD_LOCKED;
 				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
-			else add_to_invalid(&(d->invalid_tickets), my_ticket);
-
-			// wake up tasks in wait queue:
-			wake_up_all(&(d->blockq));
-			osp_spin_unlock(&(d->mutex));
-			r = -ERESTARTSYS;
+				osp_spin_unlock(&(d->mutex));
+				r = 0;
+			}
 		} else {
-			eprintk("Getting the lock\n");
-			// We can get the lock!
-			osp_spin_lock(&(d->mutex));
+			if (wait_event_interruptible(d->blockq, (my_ticket == d->ticket_head) 
+							&& (d->write_lock == 0))
+				// we enter here when the current task receives a signal before
+				// CONDITION becomes true, and the macro returns -ERESTARTSYS.
+				// if on the ticket_head, set to the next valid ticket, 
+				eprintk("Signal interrupt\n");
+				osp_spin_lock(&(d->mutex));
 
-			// add ourselves to the read or write list
-			if (filp_writable) { d->write_lock = 1; d->write_lock_proc = current->pid; }
-			else { d->read_locks++; add_to_read(&(d->read_lock_procs), current->pid); }
+				// If current ticket is ticket_head, simply set to next ticket,
+					// otherwise ticket is invalidated
+				if (d->ticket_head == my_ticket)
+					d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
+				else add_to_invalid(&(d->invalid_tickets), my_ticket);
 
-			// final settings(we acquired lock): 
-			filp->f_flags |= F_OSPRD_LOCKED;
-			d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
-			osp_spin_unlock(&(d->mutex));
-			r = 0;
+				// wake up tasks in wait queue:
+				wake_up_all(&(d->blockq));
+				osp_spin_unlock(&(d->mutex));
+				r = -ERESTARTSYS;
+			} else {
+				eprintk("Getting the lock\n");
+				// We can get the lock!
+				osp_spin_lock(&(d->mutex));
+
+				// add ourselves to the read list
+				d->read_locks++; 
+				add_to_read(&(d->read_lock_procs), current->pid);
+
+				// final settings(we acquired lock): 
+				filp->f_flags |= F_OSPRD_LOCKED;
+				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
+				osp_spin_unlock(&(d->mutex));
+				r = 0;
+			}
 		}
+		
+		
 	} else if (cmd == OSPRDIOCTRYACQUIRE) {
 
 		// EXERCISE: ATTEMPT to lock the ramdisk.
