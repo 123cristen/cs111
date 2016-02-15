@@ -422,7 +422,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 			}
 		} else {
 			if (wait_event_interruptible(d->blockq, (my_ticket == d->ticket_head) 
-							&& (d->write_lock == 0)))
+							&& (d->write_lock == 0)) == -ERESTARTSYS) {
 				// we enter here when the current task receives a signal before
 				// CONDITION becomes true, and the macro returns -ERESTARTSYS.
 				// if on the ticket_head, set to the next valid ticket, 
@@ -433,7 +433,8 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 					// otherwise ticket is invalidated
 				if (d->ticket_head == my_ticket)
 					d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
-				else add_to_invalid(&(d->invalid_tickets), my_ticket);
+				else 
+					add_to_invalid(&(d->invalid_tickets), my_ticket);
 
 				// wake up tasks in wait queue:
 				wake_up_all(&(d->blockq));
