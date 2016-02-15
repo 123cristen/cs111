@@ -46,6 +46,15 @@ MODULE_AUTHOR("Cristen Anderson and Sunnie So");
 static int nsectors = 32;
 module_param(nsectors, int, 0);
 
+/* linked list nodes to hold processes that have read/write locks, and invalid ticket numbers*/
+struct pid_list {
+	pid_t pid;
+	struct pid_list* next;
+};
+struct invalid_list {
+	unsigned num;
+	struct invalid_list* next;
+};
 
 /* The internal representation of our device. */
 typedef struct osprd_info {
@@ -66,6 +75,18 @@ typedef struct osprd_info {
 
 	/* HINT: You may want to add additional fields to help
 	         in detecting deadlock. */
+
+	// number of processes that currently have the write lock
+	int write_lock;
+	// number of processes that currently have the read lock
+	int read_locks;
+
+	// list of processes with read/write locks
+	struct pid_list* read_lock_procs;
+	pid_t write_lock_proc;
+
+	// list of invalid ticket numbers
+	struct invalid_list* invalid_tickets;
 
 	// The following elements are used internally; you don't need
 	// to understand them.
@@ -278,6 +299,13 @@ static void osprd_setup(osprd_info_t *d)
 	osp_spin_lock_init(&d->mutex);
 	d->ticket_head = d->ticket_tail = 0;
 	/* Add code here if you add fields to osprd_info_t. */
+	d->read_locks = 0;
+	d->write_lock = 0;
+	d->invalid_tickets->next = NULL;
+	d->invalid_tickets->num = -1;
+	d->read_lock_procs->next = NULL;
+	d->read_lock_procs->pid = -1;
+	d->write_lock_proc = -1;
 }
 
 
