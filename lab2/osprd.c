@@ -295,11 +295,11 @@ static int osprd_close_last(struct inode *inode, struct file *filp)
 			filp->f_flags &= ~F_OSPRD_LOCKED;
 			osp_spin_lock(&(d->mutex));
 			if(filp_writable) {
-				d->write_lock_proc = -1;
+				//d->write_lock_proc = -1;
 				d->write_lock = 0;
 			}
 			else {
-				remove_from_read(&(d->read_lock_procs), current->pid);
+				//remove_from_read(&(d->read_lock_procs), current->pid);
 				d->read_locks--;
 			}
 			// wake up tasks in wait queue:
