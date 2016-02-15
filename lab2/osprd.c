@@ -321,9 +321,9 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				// if on the ticket_head, set to the next valid ticket, 
 				osp_spin_lock(&(d->mutex));
 				if (d->ticket_head == my_ticket)
-					d->ticket_head = next_valid_ticket(d->invalid_tickets, d->ticket_head);
+					d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
 				else
-					add_to_invalid(d->invalid_tickets, my_ticket);
+					add_to_invalid(&(d->invalid_tickets), my_ticket);
 				osp_spin_unlock(&(d->mutex));
 				r = -ERESTARTSYS;
 				// wake up tasks in wait queue:
@@ -335,7 +335,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				d->write_lock_proc = current->pid;
 				// final settings(we acquired lock): 
 				filp->f_flags |= F_OSPRD_LOCKED;
-				d->ticket_head = next_valid_ticket(d->invalid_tickets, d->ticket_head);
+				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
 				osp_spin_unlock(&(d->mutex));
 			}
 		// read 
@@ -346,9 +346,9 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				// if on the ticket_head, set to the next valid ticket, 
 				osp_spin_lock(&(d->mutex));
 				if (d->ticket_head == my_ticket)
-					d->ticket_head = next_valid_ticket(d->invalid_tickets, d->ticket_head);
+					d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
 				else
-					add_to_invalid(d->invalid_tickets, my_ticket);
+					add_to_invalid(&(d->invalid_tickets), my_ticket);
 				osp_spin_unlock(&(d->mutex));
 				r = -ERESTARTSYS;
 				// wake up tasks in wait queue:
@@ -357,10 +357,10 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				// add ourselves to the read list
 				osp_spin_lock(&(d->mutex));
 				d->read_locks++;
-				add_to_read(d->read_lock_procs, current->pid);
+				add_to_read(&(d->read_lock_procs), current->pid);
 				// final settings(we acquired lock): 
 				filp->f_flags |= F_OSPRD_LOCKED;
-				d->ticket_head = next_valid_ticket(d->invalid_tickets, d->ticket_head);
+				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
 				osp_spin_unlock(&(d->mutex));
 			}
 		}
