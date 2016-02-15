@@ -173,6 +173,7 @@ void add_to_read(struct pid_list* list, pid_t read_pid) {
 	p.pid = read_pid;
 	p.next = NULL;
 	// Add the node to the list
+	eprintk("Add another node\n");
 	list->next = &p;
 	return;
 }
