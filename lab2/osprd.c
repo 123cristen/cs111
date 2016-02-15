@@ -386,6 +386,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		eprintk("Waiting...\n");
 		eprintk("Ticket head:%d, my_ticket: %d\n", d->ticket_head, my_ticket);
 		eprintk("write_lock:%d, read_locks: %d\n", d->write_lock, d->read_locks);
+		eprintk("pid: %d\n", current->pid);
 		if (filp_writable) {
 			if(wait_event_interruptible(d->blockq, (my_ticket == d->ticket_head) 
 							&& (d->write_lock == 0) && (d->read_locks == 0)) == -ERESTARTSYS){
@@ -484,12 +485,15 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 
 		// Your code here (instead of the next line).
 		// r = -ENOTTY;
+		eprintk("Releasing...\n");
+		eprintk("pid: %d\n", current->pid);
+
 		if (filp->f_flags != (filp->f_flags |= F_OSPRD_LOCKED))
 			r = -EINVAL;
 		else {
 			filp->f_flags &= ~F_OSPRD_LOCKED;
 			osp_spin_lock(&(d->mutex));
-			if(current->pid == d->write_lock_proc) {
+			if(filp_writable) {
 				d->write_lock_proc = -1;
 				d->write_lock = 0;
 			}
