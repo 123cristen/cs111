@@ -17,6 +17,8 @@
 #include "spinlock.h"
 #include "osprd.h"
 
+#include <asm/uaccess.h>
+
 /* The size of an OSPRD sector. */
 #define SECTOR_SIZE	512
 
