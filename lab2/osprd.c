@@ -130,12 +130,12 @@ static void osprd_process_request(osprd_info_t *d, struct request *req)
 
 	if(requestType == READ) {
 		// dest 				src 			size
-		if (copy_from_user((void*) req->buffer, (void*)dataPtr, req->current_nr_sectors * SECTOR_SIZE)) {
+		if (copy_to_user((void*) req->buffer, (void*)dataPtr, req->current_nr_sectors * SECTOR_SIZE)) {
 			eprintk("Segmentation fault in read\n");
 			return;
 		}
 	}	else if (requestType == WRITE) {
-		if (copy_to_user((void*)dataPtr, (void*) req->buffer, req->current_nr_sectors * SECTOR_SIZE)) {
+		if (copy_from_user((void*)dataPtr, (void*) req->buffer, req->current_nr_sectors * SECTOR_SIZE)) {
 			eprintk("Segmentation fault in write\n");
 			return;
 		}
