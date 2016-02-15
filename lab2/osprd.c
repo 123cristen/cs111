@@ -121,8 +121,28 @@ static void osprd_process_request(osprd_info_t *d, struct request *req)
 	// 'req->buffer' members, and the rq_data_dir() function.
 
 	// Your code here.
-	eprintk("Should process request...\n");
 
+	// compute the offset, set pointer to correct region
+	uint8_t *dataPtr = d->data + (req->sector) * SECTOR_SIZE;
+	
+	// check if it's read or write and copy data
+	unsigned int requestType = rq_data_dir(req);
+
+	if(requestType == READ) {
+		// dest 				src 			size
+		if (copy_from_user((void*) req->buffer, (void*)dataPtr, req->current_nr_sectors * SECTOR_SIZE)) {
+			eprintk("Segmentation fault in read\n");
+			return;
+		}
+	}	else if (requestType == WRITE) {
+		if (copy_to_user((void*)dataPtr, (void*) req->buffer, req->current_nr_sectors * SECTOR_SIZE)) {
+			eprintk("Segmentation fault in write\n");
+			return;
+		}
+	}
+
+
+	eprintk("Should process request...\n");
 	end_request(req, 1);
 }
 
