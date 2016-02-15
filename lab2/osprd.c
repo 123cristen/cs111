@@ -105,18 +105,27 @@ static osprd_info_t osprds[NOSPRD];
 * Returns the next valid executable ticket
 */
 unsigned next_valid_ticket(struct invalid_list* invalid, unsigned ticket_head) {
+	// If the num is -1, it means there are no invalid tickets
+	// ticket_head must be valid
 	if (invalid->num == -1) 
 		return ticket_head;
+	// set pointer to invalid list
 	struct invalid_list* list = invalid;
+	// If the ticket_head is invalid, increment and check again 
+		// from beginning of list
 	while (1) {
+		eprintk("Infinite loop?\n");
 		if (ticket_head == list->num) {
 			ticket_head++;
 			list = invalid;
 			continue;
 		}
+		// if this condition is met, ticket_head couldn't be found
+			// therefore ticket_head is valid
 		if (list->next == NULL) {
 			return ticket_head;
 		}
+		// Iterate to next node
 		list = list->next;
 	}
 }
@@ -126,26 +135,73 @@ unsigned next_valid_ticket(struct invalid_list* invalid, unsigned ticket_head) {
 * add ticket to the list of invalid tickets
 */
 void add_to_invalid(struct invalid_list* list, unsigned ticket) {
+	// If the num is -1, it means no nodes have been added yet
+	// Use this first node for the first invalid ticket
+	if (list->num == -1) {
+		list->num = ticket;
+		return;
+	}
+	// Find the last used node in the list
 	while (list->next != NULL)
 		list = list->next;
+	// Create a new node to add to the list
 	struct invalid_list inval;
 	inval.num = ticket;
 	inval.next = NULL;
+	// Add the node to the list
 	list->next = &inval;
 	return;
 }
 
 /*
-* add_to_read(list, ticket)
-* add ticket to the list of invalid tickets
+* add_to_read(list, pid)
+* add pid to the list of procedures with read lock
 */
 void add_to_read(struct pid_list* list, pid_t read_pid) {
+	// If the pid is -1, it means no nodes have been added yet
+	// Use this first node for the first read_pid
+	if (list->pid == -1) {
+		list->pid = read_pid;
+		return;
+	}
+	// Find the last used node in the list
 	while (list->next != NULL)
 		list = list->next;
+	// Create a new node to add to the list
 	struct pid_list p;
 	p.pid = read_pid;
 	p.next = NULL;
+	// Add the node to the list
 	list->next = &p;
+	return;
+}
+
+/*
+* remove_from_read(list, ticket)
+* remove pid from the list of procedures with read lock
+*/
+void remove_from_read(struct pid_list* list, pid_t read_pid) {
+	// If next is null, read_pid must be the only node in the list
+	// Invalidate by setting pid to -1. 
+	if (list->next == NULL) {
+		if (list->pid != read_pid) {
+			eprintk("Invalid list structure!\n");
+			return;
+		}
+		list->pid = -1;
+		return;
+	}
+	// Stop at the node before the node we want to remove
+	while (list->next != NULL && list->next->pid != read_pid)
+		list = list->next;
+	// If it's null it means read_pid couldn't be found in the list
+	if (list->next == NULL) {
+		eprintk("Invalid list structure!\n");
+		return;
+	}
+	// Set the next pointer to the next pointer of the node we want to remove
+	// This effectively skips over the node we want to remove
+	list->next = list->next->next;
 	return;
 }
 
@@ -233,12 +289,25 @@ static int osprd_close_last(struct inode *inode, struct file *filp)
 		// as appropriate.
 
 		// Your code here.
-
+		if (filp->f_flags == (filp->f_flags |= F_OSPRD_LOCKED)) {
+			filp->f_flags &= ~F_OSPRD_LOCKED;
+			osp_spin_lock(&(d->mutex));
+			if(current->pid == write_lock_proc) {
+				write_lock_proc = -1;
+				write_lock = 0;
+			}
+			else {
+				remove_from_read(d->read_lock_procs, current->pid);
+				read_locks--;
+			}
+			// wake up tasks in wait queue:
+			wake_up_all(&(d->blockq));
+			osp_spin_unlock(&(d->mutex));
+		}
 		// This line avoids compiler warnings; you may remove it.
-		(void) filp_writable, (void) d;
+		// (void) filp_writable, (void) d;
 
 	}
-
 	return 0;
 }
 
@@ -304,7 +373,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 
 		// Your code here (instead of the next two lines).
 		eprintk("Attempting to acquire\n");
-		r = -ENOTTY;
+		//r = -ENOTTY;
 
 		// get the ticket:
 		osp_spin_lock(&(d->mutex));
@@ -324,10 +393,10 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 					d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
 				else
 					add_to_invalid(&(d->invalid_tickets), my_ticket);
-				osp_spin_unlock(&(d->mutex));
-				r = -ERESTARTSYS;
 				// wake up tasks in wait queue:
 				wake_up_all(&(d->blockq));
+				osp_spin_unlock(&(d->mutex));
+				r = -ERESTARTSYS;
 			} else {
 				// add ourselves to the write list
 				osp_spin_lock(&(d->mutex));
@@ -337,6 +406,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				filp->f_flags |= F_OSPRD_LOCKED;
 				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
 				osp_spin_unlock(&(d->mutex));
+				r = 0;
 			}
 		// read 
 		} else { 
@@ -349,10 +419,10 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 					d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
 				else
 					add_to_invalid(&(d->invalid_tickets), my_ticket);
-				osp_spin_unlock(&(d->mutex));
-				r = -ERESTARTSYS;
 				// wake up tasks in wait queue:
 				wake_up_all(&(d->blockq));
+				osp_spin_unlock(&(d->mutex));
+				r = -ERESTARTSYS;
 			} else {
 				// add ourselves to the read list
 				osp_spin_lock(&(d->mutex));
@@ -362,6 +432,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				filp->f_flags |= F_OSPRD_LOCKED;
 				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
 				osp_spin_unlock(&(d->mutex));
+				r = 0;
 			}
 		}
 	} else if (cmd == OSPRDIOCTRYACQUIRE) {
@@ -387,7 +458,25 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		// you need, and return 0.
 
 		// Your code here (instead of the next line).
-		r = -ENOTTY;
+		// r = -ENOTTY;
+		if (filp->f_flags != (filp->f_flags |= F_OSPRD_LOCKED))
+			r = -EINVAL;
+		else {
+			filp->f_flags &= ~F_OSPRD_LOCKED;
+			osp_spin_lock(&(d->mutex));
+			if(current->pid == write_lock_proc) {
+				write_lock_proc = -1;
+				write_lock = 0;
+			}
+			else {
+				remove_from_read(d->read_lock_procs, current->pid);
+				read_locks--;
+			}
+			// wake up tasks in wait queue:
+			wake_up_all(&(d->blockq));
+			osp_spin_unlock(&(d->mutex));
+			r = 0;
+		}
 
 	} else
 		r = -ENOTTY; /* unknown command */
