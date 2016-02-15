@@ -103,6 +103,34 @@ static osprd_info_t osprds[NOSPRD];
 // Declare useful helper functions
 
 /*
+* add_to_invalid(list, ticket)
+* add ticket to the list of invalid tickets
+*/
+void add_to_invalid(struct invalid_list* list, unsigned ticket) {
+	while (list->next != NULL)
+		list = list->next;
+	struct invalid_list* inval;
+	inval->num = ticket;
+	inval->next = NULL;
+	list->next = inval;
+	return;
+}
+
+/*
+* add_to_read(list, ticket)
+* add ticket to the list of invalid tickets
+*/
+void add_to_read(struct pid_list* list, pid_t read_pid) {
+	while (list->next != NULL)
+		list = list->next;
+	struct pid_list* p;
+	p->pid = read_pid;
+	p->next = NULL;
+	list->next = p;
+	return;
+}
+
+/*
  * file2osprd(filp)
  *   Given an open file, check whether that file corresponds to an OSP ramdisk.
  *   If so, return a pointer to the ramdisk's osprd_info_t.
@@ -135,7 +163,7 @@ static void osprd_process_request(osprd_info_t *d, struct request *req)
 		return;
 	}
 
-	// EXERCISE: Perform the read or write request by copying data between
+	// DONE EXERCISE: Perform the read or write request by copying data between
 	// our data array and the request's buffer.
 	// Hint: The 'struct request' argument tells you what kind of request
 	// this is, and which sectors are being read or written.
