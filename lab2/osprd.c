@@ -109,10 +109,10 @@ static osprd_info_t osprds[NOSPRD];
 void add_to_invalid(struct invalid_list* list, unsigned ticket) {
 	while (list->next != NULL)
 		list = list->next;
-	struct invalid_list* inval;
-	inval->num = ticket;
-	inval->next = NULL;
-	list->next = inval;
+	struct invalid_list inval;
+	inval.num = ticket;
+	inval.next = NULL;
+	list->next = &inval;
 	return;
 }
 
@@ -123,10 +123,10 @@ void add_to_invalid(struct invalid_list* list, unsigned ticket) {
 void add_to_read(struct pid_list* list, pid_t read_pid) {
 	while (list->next != NULL)
 		list = list->next;
-	struct pid_list* p;
-	p->pid = read_pid;
-	p->next = NULL;
-	list->next = p;
+	struct pid_list p;
+	p.pid = read_pid;
+	p.next = NULL;
+	list->next = &p;
 	return;
 }
 
