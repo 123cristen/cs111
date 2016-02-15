@@ -386,7 +386,6 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		eprintk("Waiting...\n");
 		eprintk("Ticket head:%d, my_ticket: %d\n", d->ticket_head, my_ticket);
 		eprintk("write_lock:%d, read_locks: %d\n", d->write_lock, d->read_locks);
-		eprintk("Condition:%d\n", condition);
 		if (filp_writable) {
 			if(wait_event_interruptible(d->blockq, (my_ticket == d->ticket_head) 
 							&& (d->write_lock == 0) && (d->read_locks = 0)) == -ERESTARTSYS){
@@ -423,7 +422,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 			}
 		} else {
 			if (wait_event_interruptible(d->blockq, (my_ticket == d->ticket_head) 
-							&& (d->write_lock == 0))
+							&& (d->write_lock == 0)))
 				// we enter here when the current task receives a signal before
 				// CONDITION becomes true, and the macro returns -ERESTARTSYS.
 				// if on the ticket_head, set to the next valid ticket, 
