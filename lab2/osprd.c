@@ -389,7 +389,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		else condition = (my_ticket == d->ticket_head) && (d->write_lock == 0);
 		
 		eprintk("Waiting...\n");
-		eprintk("Ticket head:%d, my_ticket: %d\n", d->ticket_head, d->my_ticket);
+		eprintk("Ticket head:%d, my_ticket: %d\n", d->ticket_head, my_ticket);
 		eprintk("write_lock:%d, read_locks: %d\n", d->write_lock, d->read_locks);
 		if(wait_event_interruptible(d->blockq, condition) == -ERESTARTSYS){
 			// we enter here when the current task receives a signal before
