@@ -299,15 +299,14 @@ static void osprd_setup(osprd_info_t *d)
 	osp_spin_lock_init(&d->mutex);
 	d->ticket_head = d->ticket_tail = 0;
 	/* Add code here if you add fields to osprd_info_t. */
-	d->read_locks = 0;
-	d->write_lock = 0;
-	d->invalid_tickets->next = NULL;
-	d->invalid_tickets->num = -1;
-	d->read_lock_procs->next = NULL;
-	d->read_lock_procs->pid = -1;
-	d->write_lock_proc = -1;
+	// d->read_locks = 0;
+	// d->write_lock = 0;
+	// d->invalid_tickets->next = NULL;
+	// d->invalid_tickets->num = -1;
+	// d->read_lock_procs->next = NULL;
+	// d->read_lock_procs->pid = -1;
+	// d->write_lock_proc = -1;
 }
-
 
 /*****************************************************************************/
 /*         THERE IS NO NEED TO UNDERSTAND ANY CODE BELOW THIS LINE!          */
