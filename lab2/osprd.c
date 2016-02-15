@@ -161,6 +161,7 @@ void add_to_read(struct pid_list* list, pid_t read_pid) {
 	// If the pid is -1, it means no nodes have been added yet
 	// Use this first node for the first read_pid
 	if (list->pid == -1) {
+		eprintk("Add first node\n");
 		list->pid = read_pid;
 		return;
 	}
