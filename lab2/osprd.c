@@ -453,7 +453,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				filp->f_flags |= F_OSPRD_LOCKED;
 				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head);
 				osp_spin_unlock(&(d->mutex));
-				eprink("Finished acquire. New ticket_head:%d\n", d->ticket_head);
+				eprintk("Finished acquire. New ticket_head:%d\n", d->ticket_head);
 				r = 0;
 			}
 		}
