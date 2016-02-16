@@ -471,9 +471,9 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		osp_spin_unlock(&(d->mutex));
 
 		if (filp_writable) {
+			osp_spin_lock(&(d->mutex));
 			if ((my_ticket == d->ticket_head) && (d->write_lock == 0) && (d->read_locks == 0)) {
 				// We can get the lock!
-				osp_spin_lock(&(d->mutex));
 
 				// add ourselves to the write list
 				d->write_lock = 1; 
@@ -482,16 +482,16 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				// final settings(we acquired lock): 
 				filp->f_flags |= F_OSPRD_LOCKED;
 				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head+1);
-				osp_spin_unlock(&(d->mutex));
 				r = 0;
 			} 
 			else
 				r = -EBUSY;
+			osp_spin_unlock(&(d->mutex));
 		}
 		else {
+			osp_spin_lock(&(d->mutex));
 			if ((my_ticket == d->ticket_head) && (d->write_lock == 0)) {
 				// We can get the lock!
-				osp_spin_lock(&(d->mutex));
 
 				// add ourselves to the read list
 				d->read_locks++; 
@@ -500,11 +500,11 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				// final settings(we acquired lock): 
 				filp->f_flags |= F_OSPRD_LOCKED;
 				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head+1);
-				osp_spin_unlock(&(d->mutex));
 				r = 0;
 			}
 			else
 				r = -EBUSY;
+			osp_spin_unlock(&(d->mutex));
 		}
 
 
