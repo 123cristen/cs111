@@ -285,9 +285,8 @@ static int osprd_close_last(struct inode *inode, struct file *filp)
 	if (filp) {
 		osprd_info_t *d = file2osprd(filp);
 		int filp_writable = filp->f_mode & FMODE_WRITE;
-		eprintk("Releasing...close_last\n");
-		eprintk("pid: %d\n", current->pid);
-		// EXERCISE: If the user closes a ramdisk file that holds
+
+		// DONE EXERCISE: If the user closes a ramdisk file that holds
 		// a lock, release the lock.  Also wake up blocked processes
 		// as appropriate.
 
@@ -339,7 +338,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 
 	if (cmd == OSPRDIOCACQUIRE) {
 
-		// EXERCISE: Lock the ramdisk.
+		// DONE EXERCISE: Lock the ramdisk.
 		//
 		// If *filp is open for writing (filp_writable), then attempt
 		// to write-lock the ramdisk; otherwise attempt to read-lock
@@ -375,7 +374,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		// be protected by a spinlock; which ones?)
 
 		// Your code here (instead of the next two lines).
-		eprintk("Attempting to acquire\n");
+		// eprintk("Attempting to acquire\n");
 		//r = -ENOTTY;
 
 		// get the ticket:
@@ -384,10 +383,6 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		d->ticket_tail++;
 		osp_spin_unlock(&(d->mutex));
 		
-		eprintk("Waiting...\n");
-		eprintk("Ticket head:%d, my_ticket: %d\n", d->ticket_head, my_ticket);
-		eprintk("write_lock:%d, read_locks: %d\n", d->write_lock, d->read_locks);
-		eprintk("pid: %d\n", current->pid);
 		if (filp_writable) {
 			if(wait_event_interruptible(d->blockq, (my_ticket == d->ticket_head) 
 							&& (d->write_lock == 0) && (d->read_locks == 0)) == -ERESTARTSYS){
@@ -408,7 +403,6 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				osp_spin_unlock(&(d->mutex));
 				r = -ERESTARTSYS;
 			} else {
-				eprintk("Getting the lock\n");
 				// We can get the lock!
 				osp_spin_lock(&(d->mutex));
 
@@ -420,7 +414,6 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				filp->f_flags |= F_OSPRD_LOCKED;
 				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head+1);
 				osp_spin_unlock(&(d->mutex));
-				eprintk("Finished acquire. New ticket_head:%d\n", d->ticket_head);
 				r = 0;
 			}
 		} else {
@@ -444,7 +437,6 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				osp_spin_unlock(&(d->mutex));
 				r = -ERESTARTSYS;
 			} else {
-				eprintk("Getting the lock\n");
 				// We can get the lock!
 				osp_spin_lock(&(d->mutex));
 
@@ -456,7 +448,6 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				filp->f_flags |= F_OSPRD_LOCKED;
 				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head+1);
 				osp_spin_unlock(&(d->mutex));
-				eprintk("Finished acquire. New ticket_head:%d\n", d->ticket_head);
 				r = 0;
 			}
 		}
@@ -464,7 +455,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		
 	} else if (cmd == OSPRDIOCTRYACQUIRE) {
 
-		// EXERCISE: ATTEMPT to lock the ramdisk.
+		// DONE EXERCISE: ATTEMPT to lock the ramdisk.
 		//
 		// This is just like OSPRDIOCACQUIRE, except it should never
 		// block.  If OSPRDIOCACQUIRE would block or return deadlock,
@@ -477,7 +468,6 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 
 		if (filp_writable) {
 			if ((my_ticket == d->ticket_head) && (d->write_lock == 0) && (d->read_locks == 0)) {
-				eprintk("Getting the lock\n");
 				// We can get the lock!
 				osp_spin_lock(&(d->mutex));
 
@@ -496,7 +486,6 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		}
 		else {
 			if ((my_ticket == d->ticket_head) && (d->write_lock == 0)) {
-				eprintk("Getting the lock\n");
 				// We can get the lock!
 				osp_spin_lock(&(d->mutex));
 
@@ -508,7 +497,6 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				filp->f_flags |= F_OSPRD_LOCKED;
 				d->ticket_head = next_valid_ticket(&(d->invalid_tickets), d->ticket_head+1);
 				osp_spin_unlock(&(d->mutex));
-				eprintk("Finished acquire. New ticket_head:%d\n", d->ticket_head);
 				r = 0;
 			}
 			else
@@ -518,7 +506,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 
 	} else if (cmd == OSPRDIOCRELEASE) {
 
-		// EXERCISE: Unlock the ramdisk.
+		// DONE EXERCISE: Unlock the ramdisk.
 		//
 		// If the file hasn't locked the ramdisk, return -EINVAL.
 		// Otherwise, clear the lock from filp->f_flags, wake up
