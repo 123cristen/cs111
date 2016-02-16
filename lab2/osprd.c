@@ -114,7 +114,7 @@ unsigned next_valid_ticket(struct invalid_list* invalid, unsigned ticket_head) {
 	// If the ticket_head is invalid, increment and check again 
 		// from beginning of list
 	while (1) {
-		eprintk("Infinite loop?\n");
+		// eprintk("Infinite loop?\n");
 		if (ticket_head == list->num) {
 			ticket_head++;
 			list = invalid;
@@ -161,7 +161,6 @@ void add_to_read(struct pid_list* list, pid_t read_pid) {
 	// If the pid is -1, it means no nodes have been added yet
 	// Use this first node for the first read_pid
 	if (list->pid == -1) {
-		eprintk("Add first node\n");
 		list->pid = read_pid;
 		return;
 	}
@@ -173,7 +172,6 @@ void add_to_read(struct pid_list* list, pid_t read_pid) {
 	p.pid = read_pid;
 	p.next = NULL;
 	// Add the node to the list
-	eprintk("Add another node\n");
 	list->next = &p;
 	return;
 }
@@ -463,7 +461,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		// Otherwise, if we can grant the lock request, return 0.
 
 		// Your code here (instead of the next two lines).
-		eprintk("Attempting to try acquire\n");
+		// eprintk("Attempting to try acquire\n");
 		//r = -ENOTTY;
 
 		// get the ticket:
@@ -471,7 +469,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		unsigned my_ticket = d->ticket_tail;
 		d->ticket_tail++;
 		osp_spin_unlock(&(d->mutex));
-		
+
 		if (filp_writable) {
 			if ((my_ticket == d->ticket_head) && (d->write_lock == 0) && (d->read_locks == 0)) {
 				// We can get the lock!
@@ -521,7 +519,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 
 		// Your code here (instead of the next line).
 		// r = -ENOTTY;
-		eprintk("Releasing...ioctl\n");
+		//eprintk("Releasing...ioctl\n");
 
 		if (filp->f_flags != (filp->f_flags | F_OSPRD_LOCKED))
 			r = -EINVAL;
