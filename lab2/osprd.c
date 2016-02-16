@@ -466,6 +466,12 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		eprintk("Attempting to try acquire\n");
 		//r = -ENOTTY;
 
+		// get the ticket:
+		osp_spin_lock(&(d->mutex));
+		unsigned my_ticket = d->ticket_tail;
+		d->ticket_tail++;
+		osp_spin_unlock(&(d->mutex));
+		
 		if (filp_writable) {
 			if ((my_ticket == d->ticket_head) && (d->write_lock == 0) && (d->read_locks == 0)) {
 				// We can get the lock!
