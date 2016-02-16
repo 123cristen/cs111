@@ -292,7 +292,7 @@ static int osprd_close_last(struct inode *inode, struct file *filp)
 		// as appropriate.
 
 		// Your code here.
-		if (filp->f_flags == (filp->f_flags |= F_OSPRD_LOCKED)) {
+		if (filp->f_flags == (filp->f_flags | F_OSPRD_LOCKED)) {
 			filp->f_flags &= ~F_OSPRD_LOCKED;
 			osp_spin_lock(&(d->mutex));
 			if(filp_writable) {
@@ -489,7 +489,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		eprintk("Releasing...ioctl\n");
 		eprintk("pid: %d\n", current->pid);
 
-		if (filp->f_flags != (filp->f_flags |= F_OSPRD_LOCKED))
+		if (filp->f_flags != (filp->f_flags | F_OSPRD_LOCKED))
 			r = -EINVAL;
 		else {
 			filp->f_flags &= ~F_OSPRD_LOCKED;
