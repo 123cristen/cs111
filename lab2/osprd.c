@@ -487,7 +487,7 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		}
 		else {
 			osp_spin_lock(&(d->mutex));
-			if ((my_ticket == d->ticket_head) && (d->write_lock == 0)) {
+			if (d->write_lock == 0) {
 				// We can get the lock!
 
 				// add ourselves to the read list
