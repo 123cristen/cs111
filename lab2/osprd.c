@@ -114,7 +114,6 @@ unsigned next_valid_ticket(struct invalid_list* invalid, unsigned ticket_head) {
 	// If the ticket_head is invalid, increment and check again 
 		// from beginning of list
 	while (1) {
-		// eprintk("Infinite loop?\n");
 		if (ticket_head == list->num) {
 			ticket_head++;
 			list = invalid;
@@ -389,7 +388,6 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				// we enter here when the current task receives a signal before
 				// CONDITION becomes true, and the macro returns -ERESTARTSYS.
 				// if on the ticket_head, set to the next valid ticket, 
-				eprintk("Signal interrupt\n");
 
 				// If current ticket is ticket_head, simply set to next ticket,
 					// otherwise ticket is invalidated
@@ -422,7 +420,6 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 				// we enter here when the current task receives a signal before
 				// CONDITION becomes true, and the macro returns -ERESTARTSYS.
 				// if on the ticket_head, set to the next valid ticket, 
-				eprintk("Signal interrupt\n");
 
 				// If current ticket is ticket_head, simply set to next ticket,
 					// otherwise ticket is invalidated

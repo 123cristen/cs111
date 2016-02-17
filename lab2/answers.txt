@@ -20,3 +20,7 @@ Email: sunnieso3741@ucla.edu
 
 
 # Add any other information you'd like us to have below this line.
+
+We changed the timing of tests 16 and 17 to sleep for 0.4 seconds instead of 0.3,
+so that they would pass consistently. The test script does not work when run
+consecutively, but works the first time on each new instance of ./run-qemu. 
