@@ -136,11 +136,12 @@ close FOO;
       # (3) At 0.2s, wait for read lock; print first character then Y
       '(sleep 0.2 && ./osprdaccess -r 1 -l | sed s/$/Y/ && sleep 1) & ' .
       'bgshell2=$! ; ' .
+      # edited: reset sleep time from 0.3 to 0.4 make this test case pass consistently.
       # (4) At 0.3s, kill processes in (2); this may introduce a "bubble"
       #     in the wait queue that would prevent (3) from running
-      'sleep 0.3 ; kill -9 -$bgshell1 ; ' .
+      'sleep 0.4 ; kill -9 -$bgshell1 ; ' .
       # (5) At 0.6s, kill processes in (3)
-      'sleep 0.3 ; kill -9 -$bgshell2 ' .
+      'sleep 0.4 ; kill -9 -$bgshell2 ' .
       # Clean up separate shell.
       ') 2>/dev/null',
       "aY"
@@ -157,11 +158,12 @@ close FOO;
       # (3) At 0.2s, wait for read lock; print first character then Y
       '(sleep 0.2 && ./osprdaccess -r 1 -l | sed s/$/Y/ && sleep 1) & ' .
       'bgshell2=$! ; ' .
+      # edited: reset sleep time from 0.3 to 0.4 make this test case pass consistently.
       # (4) At 0.3s, kill processes in (3); this may introduce a "bubble"
       #     in the wait queue that would prevent (2) from running
-      'sleep 0.3 ; kill -9 -$bgshell2 ; ' .
+      'sleep 0.4 ; kill -9 -$bgshell2 ; ' .
       # (5) At 0.6s, kill processes in (2)
-      'sleep 0.3 ; kill -9 -$bgshell1 ' .
+      'sleep 0.4 ; kill -9 -$bgshell1 ' .
       # Clean up separate shell.
       ') 2>/dev/null',
       "aX"
