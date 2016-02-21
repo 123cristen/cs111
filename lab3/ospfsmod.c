@@ -719,7 +719,46 @@ add_block(ospfs_inode_t *oi)
 	uint32_t *allocated[2] = { 0, 0 };
 
 	/* EXERCISE: Your code here */
-	return -EIO; // Replace this line
+
+	uint32_t new_allocated_indirect = 0;
+	uint32_t new_allocated_indirect2 = 0;
+	uint32_t new_block = 0;
+	uint32_t *block_ptr = NULL;
+
+	void *free_block_bitmap = ospfs_block(OSPFS_FREEMAP_BLK);
+	new_block = allocate_block();
+	if(new_block)
+		zero_out_block(new_block);
+	else
+		return -ENOSPC;
+
+
+	// Check all possible cases for where to add the block
+	// Within the inode 
+	if (n < OSPFS_NDIRECT)  { 
+
+	} 
+	// New indirect block
+	else if (n == OSPFS_NDIRECT) {
+
+	}
+	// Within indirect block
+	else if (n > OSPFS_NDIRECT && n < OSPFS_NDIRECT + OSPFS_NINDIRECT) {
+
+	}
+	// New indirect2 block
+	else if (n == OSPFS_NDIRECT + OSPFS_NINDIRECT) {
+
+	}
+	// Within indirect2 block
+	else if (n > OSPFS_NDIRECT + OSPFS_NINDIRECT && n < OSPFS_NDIRECT + 2*(OSPFS_INDIRECT)) {
+
+	}
+	// Too big, can't add another block
+	else { // n == OSPFS_NDIRECT + 2*(OSPFS_INDIRECT)
+		return -ENOSPC;
+	}
+	return 0;
 }
 
 
