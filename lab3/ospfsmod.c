@@ -452,8 +452,11 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 		 * the loop.  For now we do this all the time.
 		 *
 		 * EXERCISE: Your code here */
-		r = 1;		/* Fix me! */
-		break;		/* Fix me! */
+		
+		if(f_pos - 2 >= dir_oi->oi_size){
+			r = 1;		/* Fix me! */ //fixed i believe
+			break;		/* Fix me! */ //fixed i believe
+		}
 
 		/* Get a pointer to the next entry (od) in the directory.
 		 * The file system interprets the contents of a
@@ -476,6 +479,33 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 		 */
 
 		/* EXERCISE: Your code here */
+
+		// Get next directory item
+		od = ospfs_inode_data(dir_oi, f_pos - 2);
+		// If the directory item has an inode, fill in its data
+		if ( od->od_ino){
+			entry_oi = ospfs_inode(od->od_ino);
+			// Regular files
+			if(entry_oi->oi_ftype == OSPFS_FTYPE_REG) {
+				ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos,
+					od->od_ino, DT_REG);
+			// Sub directories
+			} else if (entry_oi->oi_ftype == OSPFS_FTYPE_DIR) {
+				ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos,
+					od->od_ino, DT_DIR);
+			// Symbolic links
+			} else {
+				ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos,
+					od->od_ino, DT_LNK);
+			}
+			// Check if filldir returned successfully
+			if(ok_so_far >= 0){
+				f_pos += OSPFS_DIRENTRY_SIZE;
+			}
+
+		} else { // Ignore/skip if inode is 0
+			f_pos += OSPFS_DIRENTRY_SIZE;
+		}
 	}
 
 	// Save the file position and return!
@@ -845,6 +875,9 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 	// Make sure we don't read past the end of the file!
 	// Change 'count' so we never read past the end of the file.
 	/* EXERCISE: Your code here */
+	if(count > oi->oi_size - *f_pos){
+		count = oi->oi_size - *f_pos;
+	}
 
 	// Copy the data to user block by block
 	while (amount < count && retval >= 0) {
@@ -865,16 +898,25 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 		// into user space.
 		// Use variable 'n' to track number of bytes moved.
 		/* EXERCISE: Your code here */
-		retval = -EIO; // Replace these lines
-		goto done;
+		uint32_t offset = *f_pos % OSPFS_BLKSIZE;
+		n = OSPFS_BLKSIZE - offset;
+		if(n > count - amount){
+			n = count - amount; 
+		}
+
+		retval = copy_to_user(buffer, &(data[offset]), n);
+		if(retval){
+			retval = -EFAULT;
+			goto done;
+		}
 
 		buffer += n;
 		amount += n;
 		*f_pos += n;
 	}
 
-    done:
-	return (retval >= 0 ? amount : retval);
+  done:
+		return (retval >= 0 ? amount : retval);
 }
 
 
