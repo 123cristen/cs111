@@ -11,14 +11,14 @@
 # information you'd like us to know, please add it at the end of the file.
 
 # Partner 1
-Name: 
-Student ID: 
-Email: 
+Name: Cristen Anderson
+Student ID: 904400797
+Email: cristen@ucla.edu
 
 # Partner 2 (if you're working in a team)
-Name: 
-Student ID: 
-Email: 
+Name: Kimberly Svatos
+Student ID: 604425426
+Email: kimsvatos@ucla.edu
 
 # Extra credit problems
 #Extra credit problem: none
