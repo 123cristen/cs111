@@ -580,13 +580,26 @@ ospfs_unlink(struct inode *dirino, struct dentry *dentry)
 //   bitvector_test() to do bit operations on the map.
 
 static uint32_t
-allocate_block(void)
+allocate_block(void) //lets come back to this. //TODO
 {
-	/* EXERCISE: Your code here */
+	int MAX = 8192;
+	uint32_t i = 0;
+	void *free_block_bitmap = ospfs_block(OSPFS_FREEMAP_BLK);
+	while( i < MAX ){
+		if(bitvector_test(free_block_bitmap, i))
+			return i;
+		i++;
+	}
+
 	return 0;
 }
 
-
+/*static inline void
+bitvector_clear(void *vector, int i)
+{
+	((uint32_t *) vector) [i / 32] &= ~(1 << (i % 32));
+}*/
+//void *free_block_bitmap = ospfs_block(OSPFS_FREEMAP_BLK);
 // free_block(blockno)
 //	Use this function to free an allocated block.
 //
@@ -601,6 +614,13 @@ allocate_block(void)
 static void
 free_block(uint32_t blockno)
 {
+	if(blockno < 3) //check for "bogus" blocks
+		return;
+
+
+	void *free_block_bitmap = ospfs_block(OSPFS_FREEMAP_BLK);
+	bitvector_clear(free_block_bitmap, blockno);
+
 	/* EXERCISE: Your code here */
 }
 
