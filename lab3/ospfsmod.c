@@ -582,6 +582,7 @@ ospfs_unlink(struct inode *dirino, struct dentry *dentry)
 static uint32_t
 allocate_block(void) //lets come back to this. //TODO
 {
+	/*
 	int MAX = 8192;
 	uint32_t i = 0;
 	void *free_block_bitmap = ospfs_block(OSPFS_FREEMAP_BLK);
@@ -590,7 +591,22 @@ allocate_block(void) //lets come back to this. //TODO
 			return i;
 		i++;
 	}
+*/
 
+	uint32_t niblocks = ospfs_size2nblocks(ospfs_super->os_ninodes*OSPFS_INODESIZE);
+	uint32_t first = ospfs_super->os_firstinob + niblocks;
+	uint32_t last = first + ospfs_super->os_nblocks - 1;
+	uint32_t dblockno;
+
+	for (dblockno = first; dblockno <= last; dblockno++) {
+		if (bitvector_test(&ospfs_data[OSPFS_FREEMAP_BLK*OSPFS_BLKSIZE], dblockno)) { 
+			//free - allocate and return
+			//check if we're doing this twice on accident with add_block
+			bitvector_clear(&ospfs_data[OSPFS_FREEMAP_BLK*OSPFS_BLKSIZE], dblockno);
+			return dblockno;
+		}
+			
+	}
 	return 0;
 }
 
