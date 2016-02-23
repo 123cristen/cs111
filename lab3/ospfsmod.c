@@ -747,32 +747,99 @@ add_block(ospfs_inode_t *oi)
 
 	void *free_block_bitmap = ospfs_block(OSPFS_FREEMAP_BLK);
 	new_block = allocate_block();
-	if(new_block)
-		zero_out_block(new_block);
-	else
-		return -ENOSPC;
-
+	if(new_block) zero_out_block(new_block);
+	else return -ENOSPC;
 
 	// Check all possible cases for where to add the block
 	// Within the inode 
 	if (n < OSPFS_NDIRECT)  { 
-
+		int i = 0;
+		while (oi->oi_direct[i] != 0 && i < OSPFS_NDIRECT) i++;
+		oi_direct[i] = new_block;
+		int nblocks = i+1;
+		// inverse of ospfs_size2nblocks()
+		oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
 	} 
 	// New indirect block
 	else if (n == OSPFS_NDIRECT) {
+		uint32_t new_indirect = allocate_block();
 
+		if(new_indirect) zero_out_block(new_indirect);
+		else { free_block(new_block); return -ENOSPC; }
+			
+		oi->indirect = new_indirect;
+
+		uint32_t * inblock = ospfs_block(oi->indirect);
+		inblock[0] = new_block;
+		int nblocks = OSPFS_NDIRECT+1;
+		// inverse of ospfs_size2nblocks()
+		oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
+
+		// if (copy_from_user((void*)inblock, &new_block, 4)) return -EFAULT;
 	}
 	// Within indirect block
 	else if (n > OSPFS_NDIRECT && n < OSPFS_NDIRECT + OSPFS_NINDIRECT) {
-
+		uint32_t * inblock = ospfs_block(oi->indirect);
+		int i = 0;
+		while (inblock[i] != 0) i++;
+		inblock[i] = new_block;
+		int nblocks = OSPFS_NDIRECT + (i+1);
+		// inverse of ospfs_size2nblocks()
+		oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
 	}
 	// New indirect2 block
 	else if (n == OSPFS_NDIRECT + OSPFS_NINDIRECT) {
+		// New indirect2 block
+		uint32_t new_indirect2 = allocate_block();
+		if(new_indirect2) zero_out_block(new_indirect2);
+		else { free_block(new_block); return -ENOSPC; }
 
+		oi->indirect2 = new_indirect2;
+		// First indirect block that indirect2[0] will point to
+		uint32_t new_indirect = allocate_block();
+		if(new_indirect) zero_out_block(new_indirect);
+		else { free_block(new_block); free_block(new_indirect2); return -ENOSPC; }
+
+		uint32_t * in2block = ospfs_block(oi->indirect2);
+		in2block[0] = new_indirect;
+		uint32_t * inblock = ospfs_block(new_indirect)
+		inblock[0] = new_block;
+		int nblocks = OSPFS_NDIRECT + OSPFS_INDIRECT+1;
+		// inverse of ospfs_size2nblocks()
+		oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
 	}
 	// Within indirect2 block
-	else if (n > OSPFS_NDIRECT + OSPFS_NINDIRECT && n < OSPFS_NDIRECT + 2*(OSPFS_INDIRECT)) {
+	else if (n > OSPFS_NDIRECT + OSPFS_NINDIRECT && n < OSPFS_NDIRECT + OSPFS_INDIRECT + (OSPFS_INDIRECT)*(OSPFS_INDIRECT)) {
+		uint32_t * in2block = ospfs_block(oi->indirect2);
+		// Stop at last nonzero block in indirect2
+		int i = 0;
+		while( i+1 < OSPFS_INDIRECT && in2block[i+1] != 0) i++;
+		// check end case for above loop
+		if (i+1 == OSPFS_INDIRECT && in2block[i+1] != 0) i++;
+		uint32_t * inblock = ospfs_block(in2block[i]);
+		// Stop at last nonzero block in indirect block
+		int j = 0;
+		while(inblock[j] != 0 && j < OSPFS_INDIRECT) j++;
+		if (j == OSPFS_INDIRECT && inblock[j] != 0) {
+			// allocate new block if space
+			if (i == OSPFS_INDIRECT) { free_block(new_block); return -ENOSPC; }
 
+			uint32_t new_indirect = allocate_block();
+			if(new_indirect) zero_out_block(new_indirect);
+			else { free_block(new_block); return -ENOSPC; }
+			
+			in2block[i+1] = new_indirect;
+			inblock[0] = new_block;
+			int nblocks = OSPFS_NDIRECT + OSPFS_INDIRECT + i*OSPFS_INDIRECT+1;
+			// inverse of ospfs_size2nblocks()
+			oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
+		}
+		else {
+			inblock[j] = new_block;
+			int nblocks = OSPFS_NDIRECT + OSPFS_INDIRECT + i*OSPFS_INDIRECT+j;
+			// inverse of ospfs_size2nblocks()
+			oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
+		}
 	}
 	// Too big, can't add another block
 	else { // n == OSPFS_NDIRECT + 2*(OSPFS_INDIRECT)
