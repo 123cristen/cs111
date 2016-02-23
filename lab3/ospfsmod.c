@@ -1378,8 +1378,65 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 {
 	ospfs_inode_t *dir_oi = ospfs_inode(dir->i_ino);
 	uint32_t entry_ino = 0;
+
+//TODO run through and check logic, look at again, unsure if we need a temp
+
 	/* EXERCISE: Your code here. */
-	return -EINVAL; // Replace this line
+	ospfs_direntry_t *d_entry;
+	ospfs_inode_t *inode;
+
+	//name too long?
+	if(dentry->d_name.len > OSPFS_MAXNAMELEN)
+		return -ENAMETOOLONG;
+
+	//is file type a directory?
+	if(dir_oi->oi_ftype != OSPFS_FTYPE_DIR)
+		return -EIO;
+
+	//does directory entry already exist?
+	if(find_direntry(dir_oi, dentry->d_name.name, dentry->d_name.len))
+		return -EEXIST;
+
+	//create new directory entry
+	d_entry = create_blank_direntry(dir_oi);
+	if( IS_ERR(d_entry))
+		return PTR_ERR(d_entry);
+
+	//find empty inode
+	for ( entry_ino = 0; entry_ino < ospfs_super->os_ninodes; entry_ino++) {
+		inode = ospfs_inode(entry_ino);
+
+		if (inode->oi_nlink == 0) //returns true when finds empty inode
+			break; 
+	}
+
+	//check that we didnt go through end of for loop
+	if(entry_ino == ospfs_super->os_ninodes) 
+		return -ENOSPC;
+
+	d_entry->od_ino = entry_ino;
+	if(copy_from_user(d_entry, &entry_ino, 4)) //inode number
+		return -EIO;
+	if(copy_from_user(d_entry+4, dentry->d_name.name, dentry->d_name.len))
+		return -EIO;
+
+
+	//make a temporary inode
+	ospfs_inode_t holder;
+	holder.oi_size = 0;
+	holder.oi_ftype = OSPFS_FTYPE_REG;
+	holder.oi_nlink = 1;
+	holder.oi_mode = mode;
+	memset(holder.oi_direct, 0, OSPFS_NDIRECT);
+	holder.oi_indirect = 0;
+	holder.oi_indirect2 = 0;
+
+
+	if(copy_from_user(inode, &holder, OSPFS_INODESIZE))
+		return -EIO;
+
+
+	//return -EINVAL; // Replace this line
 
 	/* Execute this code after your function has successfully created the
 	   file.  Set entry_ino to the created file's inode number before
