@@ -713,6 +713,14 @@ direct_index(uint32_t b)
 	return -1;
 }
 
+static void zero_out_block(uint32_t b)
+{
+	uint32_t *block = ospfs_block(b);
+	int i = 0;
+	while (i < OSPFS_NINDIRECT) {
+		block[i] = 0;
+	}
+}
 
 // add_block(ospfs_inode_t *oi)
 //   Adds a single data block to a file, adding indirect and
@@ -771,7 +779,7 @@ add_block(ospfs_inode_t *oi)
 	if (n < OSPFS_NDIRECT)  { 
 		int i = 0;
 		while (oi->oi_direct[i] != 0 && i < OSPFS_NDIRECT) i++;
-		oi_direct[i] = new_block;
+		oi->oi_direct[i] = new_block;
 		int nblocks = n+1;
 		// inverse of ospfs_size2nblocks()
 		oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
@@ -783,7 +791,7 @@ add_block(ospfs_inode_t *oi)
 		if(new_indirect) zero_out_block(new_indirect);
 		else { free_block(new_block); return -ENOSPC; }
 			
-		oi->indirect = new_indirect;
+		oi->oi_indirect = new_indirect;
 
 		uint32_t * inblock = ospfs_block(oi->oi_indirect);
 		inblock[0] = new_block;
@@ -819,7 +827,7 @@ add_block(ospfs_inode_t *oi)
 
 		uint32_t * in2block = ospfs_block(oi->oi_indirect2);
 		in2block[0] = new_indirect;
-		uint32_t * inblock = ospfs_block(new_indirect)
+		uint32_t * inblock = ospfs_block(new_indirect);
 		inblock[0] = new_block;
 		int nblocks = n+1;
 		// inverse of ospfs_size2nblocks()
