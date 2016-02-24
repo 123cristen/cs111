@@ -946,16 +946,16 @@ remove_block(ospfs_inode_t *oi)
 		if(new_indirect) zero_out_block(new_indirect);
 		else { free_block(new_block); free_block(new_indirect2); return -ENOSPC; }
 		
-		oi->indirect2 = new_indirect2;
+		oi->oi_indirect2 = new_indirect2;
 
-		uint32_t * in2block = ospfs_block(oi->indirect2);
+		uint32_t * in2block = ospfs_block(oi->oi_indirect2);
 		uint32_t * inblock = ospfs_block(in2block[0]);
 		free_block(inblock[0]);
 		inblock[0] = 0;
 		free_block(in2block[0]);
 		in2block[0] = 0;
-		free_block(oi->indirect2);
-		oi->indirect2 = 0;
+		free_block(oi->oi_indirect2);
+		oi->oi_indirect2 = 0;
 
 		int nblocks = n-1;
 		// inverse of ospfs_size2nblocks()
@@ -966,13 +966,13 @@ remove_block(ospfs_inode_t *oi)
 		uint32_t * in2block = ospfs_block(oi->oi_indirect2);
 		// Stop at last nonzero block in indirect2
 		int i = 0;
-		while( i+1 < OSPFS_INDIRECT && in2block[i+1] != 0) i++;
+		while( i+1 < OSPFS_NINDIRECT && in2block[i+1] != 0) i++;
 		// check end case for above loop
-		if (i+1 == OSPFS_INDIRECT && in2block[i+1] != 0) i++;
+		if (i+1 == OSPFS_NINDIRECT && in2block[i+1] != 0) i++;
 		uint32_t * inblock = ospfs_block(in2block[i]);
 		// Stop at last nonzero block in indirect block
 		int j = 0;
-		while(inblock[j] != 0 && j < OSPFS_INDIRECT) j++;
+		while(inblock[j] != 0 && j < OSPFS_NINDIRECT) j++;
 		if (j == 0 && inblock[j] != 0) {
 			// remove indirect block
 			free_block(inblock[0]);
