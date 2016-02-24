@@ -962,8 +962,8 @@ remove_block(ospfs_inode_t *oi)
 		oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
 	}
 	// Within indirect2 block
-	else if (n > OSPFS_NDIRECT + OSPFS_NINDIRECT +1 && n <= OSPFS_NDIRECT + OSPFS_INDIRECT + (OSPFS_INDIRECT)*(OSPFS_INDIRECT)) {
-		uint32_t * in2block = ospfs_block(oi->indirect2);
+	else if (n > OSPFS_NDIRECT + OSPFS_NINDIRECT +1 && n <= OSPFS_NDIRECT + OSPFS_NINDIRECT + (OSPFS_NINDIRECT)*(OSPFS_NINDIRECT)) {
+		uint32_t * in2block = ospfs_block(oi->oi_indirect2);
 		// Stop at last nonzero block in indirect2
 		int i = 0;
 		while( i+1 < OSPFS_INDIRECT && in2block[i+1] != 0) i++;
@@ -1049,7 +1049,7 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 	{
 		//keep original size
 		while(ospfs_size2nblocks(oi->oi_size) > ospfs_size2nblocks(old_size))
-			r = remove_block(oi)
+			r = remove_block(oi);
 
 		oi->oi_size = old_size;
 		return -ENOSPC;
