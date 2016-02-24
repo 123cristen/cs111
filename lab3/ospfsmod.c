@@ -936,18 +936,6 @@ remove_block(ospfs_inode_t *oi)
 	}
 	// Remove indirect2 block
 	else if (n == OSPFS_NDIRECT + OSPFS_NINDIRECT+1) {
-		// New indirect2 block
-		uint32_t new_indirect2 = allocate_block();
-		if(new_indirect2) zero_out_block(new_indirect2);
-		else { free_block(new_block); return -ENOSPC; }
-
-		// First indirect block that indirect2[0] will point to
-		uint32_t new_indirect = allocate_block();
-		if(new_indirect) zero_out_block(new_indirect);
-		else { free_block(new_block); free_block(new_indirect2); return -ENOSPC; }
-		
-		oi->oi_indirect2 = new_indirect2;
-
 		uint32_t * in2block = ospfs_block(oi->oi_indirect2);
 		uint32_t * inblock = ospfs_block(in2block[0]);
 		free_block(inblock[0]);
