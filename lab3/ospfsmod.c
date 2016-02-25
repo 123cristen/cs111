@@ -524,7 +524,7 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 //
 //   Returns: 0 if success and -ENOENT on entry not found.
 //
-//   EXERCISE: Make sure that deleting symbolic links works correctly.
+//  TODO EXERCISE: Make sure that deleting symbolic links works correctly.
 
 static int
 ospfs_unlink(struct inode *dirino, struct dentry *dentry)
@@ -630,14 +630,13 @@ bitvector_clear(void *vector, int i)
 static void
 free_block(uint32_t blockno)
 {
+	/* EXERCISE: Your code here */
 	if(blockno < 3) //check for "bogus" blocks
 		return;
 
 
 	void *free_block_bitmap = ospfs_block(OSPFS_FREEMAP_BLK);
 	bitvector_set(free_block_bitmap, blockno);
-
-	/* EXERCISE: Your code here */
 }
 
 
@@ -1195,12 +1194,17 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	ospfs_inode_t *oi = ospfs_inode(filp->f_dentry->d_inode->i_ino);
 	int retval = 0;
 	size_t amount = 0;
+	uint32_t block_no = 0;
+	uint32_t * a;
 
 	// Support files opened with the O_APPEND flag.  To detect O_APPEND,
 	// use struct file's f_flags field and the O_APPEND bit.
 	/* EXERCISE: Your code here */
 		if (filp->f_flags & O_APPEND) {
 			// find end of file to append to
+			// block_no = ospfs_inode_blockno(oi, oi->oi_size);
+			// f_pos = ospfs_block(block_no);
+			f_pos = ospfs_inode_data(oi, oi->oi_size);
 		}
 
 	// If the user is writing past the end of the file, change the file's
@@ -1318,7 +1322,21 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 	//    entries and return one of them.
 
 	/* EXERCISE: Your code here. */
-	return ERR_PTR(-EINVAL); // Replace this line
+
+	uint32_t offset = 0;
+	while(offset <= dir_oi->oi_size-OSPFS_DIRENTRY_SIZE) {
+		ospfs_direntry_t * direntry = ospfs_inode_data(dir_oi, offset);
+		if (direntry->od_ino == 0)
+			return direntry;
+		offset += OSPFS_DIRENTRY_SIZE;
+	}
+	
+	// blocks are full, add new block
+	uint32_t ret = change_size(dir_oi, dir_oi->oi_size + OSPFS_DIRENTRY_SIZE)
+	if (ret != 0)
+		return ERR_PTR(ret);
+	// new block has been allocated at offset. 
+	return ospfs_inode_data(dir_oi, offset);
 }
 
 // ospfs_link(src_dentry, dir, dst_dentry
@@ -1348,11 +1366,11 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 //               -ENOSPC       if the disk is full & the file can't be created;
 //               -EIO          on I/O error.
 //
-//   EXERCISE: Complete this function.
+//   TODO EXERCISE: Complete this function.
 
 static int
 ospfs_link(struct dentry *src_dentry, struct inode *dir, struct dentry *dst_dentry) {
-	/* EXERCISE: Your code here. */
+	/* TODO EXERCISE: Your code here. */
 	return -EINVAL;
 }
 
@@ -1483,7 +1501,7 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 //               -ENOSPC       if the disk is full & the file can't be created;
 //               -EIO          on I/O error.
 //
-//   EXERCISE: Complete this function.
+//   TODO EXERCISE: Complete this function.
 
 static int
 ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
@@ -1491,7 +1509,7 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
 	ospfs_inode_t *dir_oi = ospfs_inode(dir->i_ino);
 	uint32_t entry_ino = 0;
 
-	/* EXERCISE: Your code here. */
+	/* TODO EXERCISE: Your code here. */
 	return -EINVAL;
 
 	/* Execute this code after your function has successfully created the
