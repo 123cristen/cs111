@@ -785,9 +785,6 @@ add_block(ospfs_inode_t *oi)
 		i = 0;
 		while (oi->oi_direct[i] != 0 && i < OSPFS_NDIRECT) i++;
 		oi->oi_direct[i] = new_block;
-		nblocks = n+1;
-		// inverse of ospfs_size2nblocks()
-		oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
 	} 
 	// New indirect block
 	else if (n == OSPFS_NDIRECT) {
@@ -800,11 +797,6 @@ add_block(ospfs_inode_t *oi)
 
 		inblock = ospfs_block(oi->oi_indirect);
 		inblock[0] = new_block;
-		nblocks = n+1;
-		// inverse of ospfs_size2nblocks()
-		oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
-
-		// if (copy_from_user((void*)inblock, &new_block, 4)) return -EFAULT;
 	}
 	// Within indirect block
 	else if (n > OSPFS_NDIRECT && n < OSPFS_NDIRECT + OSPFS_NINDIRECT) {
@@ -812,9 +804,6 @@ add_block(ospfs_inode_t *oi)
 		i = 0;
 		while (inblock[i] != 0) i++;
 		inblock[i] = new_block;
-		nblocks = n+1;
-		// inverse of ospfs_size2nblocks()
-		oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
 	}
 	// New indirect2 block
 	else if (n == OSPFS_NDIRECT + OSPFS_NINDIRECT) {
@@ -834,9 +823,6 @@ add_block(ospfs_inode_t *oi)
 		in2block[0] = new_indirect;
 		inblock = ospfs_block(new_indirect);
 		inblock[0] = new_block;
-		nblocks = n+1;
-		// inverse of ospfs_size2nblocks()
-		oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
 	}
 	// Within indirect2 block
 	else if (n > OSPFS_NDIRECT + OSPFS_NINDIRECT && n < OSPFS_NDIRECT + OSPFS_NINDIRECT + (OSPFS_NINDIRECT)*(OSPFS_NINDIRECT)) {
@@ -860,21 +846,16 @@ add_block(ospfs_inode_t *oi)
 			
 			in2block[i+1] = new_indirect;
 			inblock[0] = new_block;
-			nblocks = n+1;
-			// inverse of ospfs_size2nblocks()
-			oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
 		}
 		else {
 			inblock[j] = new_block;
-			nblocks = n+1;
-			// inverse of ospfs_size2nblocks()
-			oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
 		}
 	}
 	// Too big, can't add another block
 	else { // n == OSPFS_NDIRECT + 2*(OSPFS_INDIRECT)
 		return -ENOSPC;
 	}
+	oi->oi_size += OSPFS_BLKSIZE;
 	return 0;
 }
 
@@ -912,19 +893,18 @@ remove_block(ospfs_inode_t *oi)
 	uint32_t * inblock;
 	uint32_t * in2block;
 
+	if (n < 0)
+		return -EIO;
+
 	// Check all possible cases for where to add the block
 	// Within the inode 
 	if (n <= OSPFS_NDIRECT)  { 
-		// Returns first nonzero value in direct array
+		// Returns first zero value in direct array
 		i = 0;
 		while (oi->oi_direct[i] != 0 && i < OSPFS_NDIRECT) i++;
 		if (i == 0 && oi->oi_direct[i] == 0) return 0;
 		free_block(oi->oi_direct[i-1]);
 		oi->oi_direct[i-1] = 0;
-
-		nblocks = n-1;
-		// inverse of ospfs_size2nblocks()
-		oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
 	} 
 	// Remove indirect block
 	else if (n == OSPFS_NDIRECT+1) {
@@ -933,10 +913,6 @@ remove_block(ospfs_inode_t *oi)
 		inblock[0] = 0;
 		free_block(oi->oi_indirect);
 		oi->oi_indirect = 0;
-		
-		nblocks = n-1;
-		// inverse of ospfs_size2nblocks()
-		oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
 	}
 	// Within indirect block
 	else if (n > OSPFS_NDIRECT+1 && n <= OSPFS_NDIRECT + OSPFS_NINDIRECT) {
@@ -945,10 +921,6 @@ remove_block(ospfs_inode_t *oi)
 		while (inblock[i] != 0) i++;
 		free_block(inblock[i]);
 		inblock[i] = 0;
-
-		nblocks = n-1;
-		// inverse of ospfs_size2nblocks()
-		oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
 	}
 	// Remove indirect2 block
 	else if (n == OSPFS_NDIRECT + OSPFS_NINDIRECT+1) {
@@ -960,10 +932,6 @@ remove_block(ospfs_inode_t *oi)
 		in2block[0] = 0;
 		free_block(oi->oi_indirect2);
 		oi->oi_indirect2 = 0;
-
-		nblocks = n-1;
-		// inverse of ospfs_size2nblocks()
-		oi->oi_size = nblocks*OSPFS_BLKSIZE-OSPFS_BLKSIZE+1;
 	}
 	// Within indirect2 block
 	else if (n > OSPFS_NDIRECT + OSPFS_NINDIRECT +1 && n <= OSPFS_NDIRECT + OSPFS_NINDIRECT + (OSPFS_NINDIRECT)*(OSPFS_NINDIRECT)) {
@@ -994,6 +962,8 @@ remove_block(ospfs_inode_t *oi)
 	else { // n > OSPFS_NDIRECT + 2*(OSPFS_INDIRECT)
 		return -EIO;
 	}
+	oi->oi_size -= OSPFS_BLKSIZE;
+
 	return 0;
 }
 
