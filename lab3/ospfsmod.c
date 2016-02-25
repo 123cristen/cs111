@@ -761,7 +761,7 @@ add_block(ospfs_inode_t *oi)
 	uint32_t n = ospfs_size2nblocks(oi->oi_size);
 
 	// keep track of allocations to free in case of -ENOSPC
-	uint32_t *allocated[2] = { 0, 0 };
+	//uint32_t *allocated[2] = { 0, 0 };
 
 	/* EXERCISE: Your code here */
 
@@ -774,7 +774,7 @@ add_block(ospfs_inode_t *oi)
 	int i, j;
 	int nblocks;
 
-	void *free_block_bitmap = ospfs_block(OSPFS_FREEMAP_BLK);
+	//void *free_block_bitmap = ospfs_block(OSPFS_FREEMAP_BLK);
 	new_block = allocate_block();
 	if(new_block) zero_out_block(new_block);
 	else return -ENOSPC;
@@ -1425,6 +1425,7 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 	/* EXERCISE: Your code here. */
 	ospfs_direntry_t *d_entry;
 	ospfs_inode_t *inode;
+	ospfs_inode_t holder;
 
 	//name too long?
 	if(dentry->d_name.len > OSPFS_MAXNAMELEN)
@@ -1463,7 +1464,6 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 
 
 	//make a temporary inode
-	ospfs_inode_t holder;
 	holder.oi_size = 0;
 	holder.oi_ftype = OSPFS_FTYPE_REG;
 	holder.oi_nlink = 1;
