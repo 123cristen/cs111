@@ -1490,8 +1490,66 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
 	ospfs_inode_t *dir_oi = ospfs_inode(dir->i_ino);
 	uint32_t entry_ino = 0;
 
+	//name too long?
+	if(dentry->d_name.len > OSPFS_MAXNAMELEN)
+		return -ENAMETOOLONG;
+
+	//make sure that name doesnt exist
+	if(find_direntry(dir_oi, dentry->d_name.name, dentry->d_name.len))
+		return -EEXIST;
+
+	//is file type a directory? TODO fix this
+	//if(dir->oi_ftype != OSPFS_FTYPE_DIR)
+	//	return -EIO;
+
+	if((dentry->d_name.len == 0) || (strlen(symname) == 0))
+		return -EINVAL;
+
+	ospfs_inode_t *inode;
+	//find empty inode, entry_ino will equal it after this loop
+	for ( entry_ino = 0; entry_ino < ospfs_super->os_ninodes; entry_ino++) {
+		inode = ospfs_inode(entry_ino);
+
+		if (inode->oi_nlink == 0) //returns true when finds empty inode
+			break; 
+	}
+
+	//check that we didnt go through end of for loop
+	if(entry_ino == ospfs_super->os_ninodes) 
+		return -ENOSPC;
+
+	//make inode a symlink and check return
+	ospfs_symlink_inode_t *new_inode_location = (ospfs_symlink_inode_t *) ospfs_inode(entry_ino);
+	if(new_inode_location = NULL)
+		return -EIO;
+
+	//create directory and check return
+	ospfs_direntry_t *newdir = create_blank_direntry(dir_oi);
+	if(IS_ERR(newdir))
+		return PTR_ERR(newdir);
+
+	//copy info to blank directory
+	if(copy_from_user(newdir, &entry_ino, 4))
+		return -EIO;
+	if(copy_from_user(newdir + 4, dentry->d_name.name, dentry->d_name.len))
+		return -EIO;
 	/* TODO EXERCISE: Your code here. */
-	return -EINVAL;
+
+	//make temp symlink
+	ospfs_symlink_inode_t holder;
+	holder.oi_size = strlen(symname);
+	holder.oi_ftype = OSPFS_FTYPE_SYMLINK;
+	holder.oi_nlink =1;
+	strcpy(holder.oi_symlink, symname);
+
+	//aight lets do this
+	ospfs_inode_t *linked = ospfs_block(ospfs_super->os_firstinob);
+	linked = &linked[entry_ino]; //found empty inode
+
+	if(copy_from_user(linked, &holder, OSPFS_INODESIZE))
+		return -EIO;
+
+	//return -EINVAL;
 
 	/* Execute this code after your function has successfully created the
 	   file.  Set entry_ino to the created file's inode number before
