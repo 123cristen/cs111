@@ -1533,7 +1533,7 @@ eprintk("about to make create blank dir\n");
 		return PTR_ERR(newdir);
 
 	size_t namelength = strlen(symname);
-	if(name_len > OSPFS_MAXNAMELEN)
+	if(namelength > OSPFS_MAXNAMELEN)
 		return -ENAMETOOLONG;
 
 	eprintk("about to strncpy first time\n");
