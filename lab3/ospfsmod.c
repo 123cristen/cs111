@@ -1457,7 +1457,61 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
 	uint32_t entry_ino = 0;
 
 	/* TODO EXERCISE: Your code here. */
-	return -EINVAL;
+	//name too long?
+	if(dentry->d_name.len > OSPFS_MAXNAMELEN)
+		return -ENAMETOOLONG;
+
+	//is file type a directory?
+	if(dir->oi_ftype != OSPFS_FTYPE_DIR)
+		return -EIO;
+
+	//make sure that name doesnt exist
+	if(find_direntry(dir_oi, dentry->d_name.name, dentry->d_name.len))
+		return -EEXIST;
+
+	if((dentry->d_name.len == 0) || (strlen(symname) == 0))
+		return -EINVAL;
+
+	ospfs_inode_t *inode;
+	//find empty inode, entry_ino will equal it after this loop
+	for ( entry_ino = 0; entry_ino < ospfs_super->os_ninodes; entry_ino++) {
+		inode = ospfs_inode(entry_ino);
+
+		if (inode->oi_nlink == 0) //returns true when finds empty inode
+			break; 
+	}
+
+	//check that we didnt go through end of for loop
+	if(entry_ino == ospfs_super->os_ninodes) 
+		return -ENOSPC;
+
+	//make inode a symlink and check return
+	ospfs_symlink_inode_t *new_inode_location = (ospfs_symlink_inode_t *) ospfs_inode(entry_ino);
+	if(new_inode_location == NULL)
+		return -EIO;
+
+	//create directory and check return
+	ospfs_direntry_t *newdir = create_blank_direntry(dir_oi);
+	if(IS_ERR(newdir))
+		return PTR_ERR(newdir);
+
+	size_t namelength = strlen(symname);
+	if(namelength > OSPFS_MAXNAMELEN)
+		return -ENAMETOOLONG;
+
+	new_inode_location->oi_size = namelength;
+	strncpy(new_inode_location->oi_symlink, symname, new_inode_location->oi_size);
+	new_inode_location->oi_symlink[new_inode_location->oi_size] = '\0';
+
+
+	new_inode_location->oi_ftype = OSPFS_FTYPE_SYMLINK;
+	new_inode_location->oi_nlink = 1;
+
+	strncpy(newdir->od_name, dentry->d_name.name, dentry->d_name.len);
+	newdir->od_name[dentry->d_name.len] = 0;
+	newdir->od_ino = entry_ino;
+
+	dir_oi->oi_nlink++;
 
 	/* Execute this code after your function has successfully created the
 	   file.  Set entry_ino to the created file's inode number before
