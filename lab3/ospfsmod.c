@@ -917,7 +917,7 @@ remove_block(ospfs_inode_t *oi)
 			free_block(inblock[(n- OSPFS_NDIRECT) % OSPFS_NINDIRECT]);
 			inblock[(n- OSPFS_NDIRECT) % OSPFS_NINDIRECT] = 0;
 			free_block(in2block[(n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT]);
-			in2block[(n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT]] = 0;
+			in2block[(n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT] = 0;
 		}
 		else {
 			// just remove data block
