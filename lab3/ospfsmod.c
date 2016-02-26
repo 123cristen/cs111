@@ -1537,8 +1537,8 @@ eprintk("about to make create blank dir\n");
 		return -ENAMETOOLONG;
 
 	eprintk("about to strncpy first time\n");
-	new_inode_location->oi_size = name_len;
-	strncpy(new_inode_loc->oi_symlink, symname, new_inode_location->oi_size);
+	new_inode_location->oi_size = namelength;
+	strncpy(new_inode_location->oi_symlink, symname, new_inode_location->oi_size);
 	new_inode_location->oi_symlink[new_inode_location->oi_size] = '\0';
 
 
