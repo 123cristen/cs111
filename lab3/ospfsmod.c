@@ -580,19 +580,8 @@ ospfs_unlink(struct inode *dirino, struct dentry *dentry)
 //   bitvector_test() to do bit operations on the map.
 
 static uint32_t
-allocate_block(void) //lets come back to this. //TODO
+allocate_block(void)
 {
-	/*
-	int MAX = 8192;
-	uint32_t i = 0;
-	void *free_block_bitmap = ospfs_block(OSPFS_FREEMAP_BLK);
-	while( i < MAX ){
-		if(bitvector_test(free_block_bitmap, i))
-			return i;
-		i++;
-	}
-*/
-
 	uint32_t niblocks = ospfs_size2nblocks(ospfs_super->os_ninodes*OSPFS_INODESIZE);
 	uint32_t first = ospfs_super->os_firstinob + niblocks;
 	uint32_t last = first + ospfs_super->os_nblocks - 1;
@@ -716,11 +705,13 @@ free_block(uint32_t blockno)
 
 static void zero_out_block(uint32_t b)
 {
-	uint32_t *block = ospfs_block(b);
-	int i = 0;
-	while (i < OSPFS_NINDIRECT) {
-		block[i] = 0;
-	}
+	void *block = ospfs_block(b);
+	// int i = 0;
+	// while (i < OSPFS_NINDIRECT) {
+	// 	block[i] = 0;
+	// }
+	long val = 0;
+	copy_from_user(block, &val, OSPFS_BLKSIZE);
 }
 
 // add_block(ospfs_inode_t *oi)
@@ -783,7 +774,8 @@ add_block(ospfs_inode_t *oi)
 	// Within the inode 
 	if (n < OSPFS_NDIRECT)  { 
 		i = 0;
-		while (oi->oi_direct[i] != 0 && i < OSPFS_NDIRECT) i++;
+		while (oi->oi_direct[i] != 0 && i <= OSPFS_NDIRECT) i++;
+		if (i == OSPFS_NDIRECT) eprintk("Loop error! 1\n");
 		oi->oi_direct[i] = new_block;
 	} 
 	// New indirect block
@@ -802,7 +794,8 @@ add_block(ospfs_inode_t *oi)
 	else if (n > OSPFS_NDIRECT && n < OSPFS_NDIRECT + OSPFS_NINDIRECT) {
 		inblock = ospfs_block(oi->oi_indirect);
 		i = 0;
-		while (inblock[i] != 0) i++;
+		while (inblock[i] != 0 && i <= OSPFS_NINDIRECT ) i++;
+		if (i == OSPFS_NINDIRECT) eprintk("Loop error! 1\n");
 		inblock[i] = new_block;
 	}
 	// New indirect2 block
