@@ -1533,6 +1533,8 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
 
 	//copy info to blank directory
 	eprintk("about to copy info to blank diretory 1 \n");
+	int k = copy_from_user(newdir, &entry_ino, 4);
+	eprintk("%i\n");
 	if(copy_from_user(newdir, &entry_ino, 4))
 		return -EIO;
 	
