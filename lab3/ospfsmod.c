@@ -1157,18 +1157,17 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	// Support files opened with the O_APPEND flag.  To detect O_APPEND,
 	// use struct file's f_flags field and the O_APPEND bit.
 	/* EXERCISE: Your code here */
-		if (filp->f_flags & O_APPEND) {
-			// find end of file to append to
-			// block_no = ospfs_inode_blockno(oi, oi->oi_size);
-			// f_pos = ospfs_block(block_no);
-			f_pos = ospfs_inode_data(oi, oi->oi_size);
-		}
+		if (filp->f_flags & O_APPEND)
+			*f_pos =oi->oi_size;
 
 	// If the user is writing past the end of the file, change the file's
 	// size to accomodate the request.  (Use change_size().)
 	/* EXERCISE: Your code here */
 	if(count > oi->oi_size - *f_pos){
-		if (change_size(oi, count) != 0) retval = -EIO;
+		if (change_size(oi, count) != 0) {
+			eprintk("IO error in write: change size\n");
+			retval = -EIO;
+		}
 	}
 
 	// Copy data block by block
@@ -1366,8 +1365,6 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 	ospfs_inode_t *dir_oi = ospfs_inode(dir->i_ino);
 	uint32_t entry_ino = 0;
 
-//TODO run through and check logic, look at again, unsure if we need a temp
-
 	/* EXERCISE: Your code here. */
 	ospfs_direntry_t *d_entry;
 	ospfs_inode_t *inode;
@@ -1406,30 +1403,20 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 		return -ENOSPC;
 
 	d_entry->od_ino = entry_ino;
-	if(copy_from_user(d_entry, &entry_ino, 4)) {//inode number
+
+	if(copy_from_user(d_entry->od_name, dentry->d_name.name, dentry->d_name.len)) {
 		eprintk("IO Error: copy_from_user in create\n");
 		return -EIO;
 	}
-	if(copy_from_user(d_entry+4, dentry->d_name.name, dentry->d_name.len)) {
-		eprintk("IO Error: copy_from_user in create\n");
-		return -EIO;
-	}
 
 
-	//make a temporary inode
-	holder.oi_size = 0;
-	holder.oi_ftype = OSPFS_FTYPE_REG;
-	holder.oi_nlink = 1;
-	holder.oi_mode = mode;
-	memset(holder.oi_direct, 0, OSPFS_NDIRECT);
-	holder.oi_indirect = 0;
-	holder.oi_indirect2 = 0;
-
-
-	if(copy_from_user(inode, &holder, OSPFS_INODESIZE)) {
-		eprintk("IO Error: copy_from_user in create\n");
-		return -EIO;
-	}
+	//set inode
+	inode->oi_size = 0;
+	inode->oi_ftype = OSPFS_FTYPE_REG;
+	inode->oi_nlink = 1;
+	inode->oi_mode = mode;
+	inode->oi_indirect = 0;
+	inode->oi_indirect2 = 0;
 
 
 	//return -EINVAL; // Replace this line
