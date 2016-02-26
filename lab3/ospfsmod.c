@@ -1530,9 +1530,10 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
 		return PTR_ERR(newdir);
 
 	//copy info to blank directory
-	eprintk("about to copy info to blank diretory\n");
+	eprintk("about to copy info to blank diretory 1 \n");
 	if(copy_from_user(newdir, &entry_ino, 4))
 		return -EIO;
+	eprintk("about to copy info to blank diretory 2 \n");
 	if(copy_from_user(newdir + 4, dentry->d_name.name, dentry->d_name.len))
 		return -EIO;
 	/* TODO EXERCISE: Your code here. */
@@ -1548,6 +1549,7 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
 	ospfs_inode_t *linked = ospfs_block(ospfs_super->os_firstinob);
 	linked = &linked[entry_ino]; //found empty inode
 
+	eprintk("about to copy info to LINKED\n");
 	if(copy_from_user(linked, &holder, OSPFS_INODESIZE))
 		return -EIO;
 
