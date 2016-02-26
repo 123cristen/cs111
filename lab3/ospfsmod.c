@@ -1525,7 +1525,7 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
 		return -EIO;
 
 	//create directory and check return
-	ospfs_direntry_t *newdir == create_blank_direntry(dir_oi);
+	ospfs_direntry_t *newdir = create_blank_direntry(dir_oi);
 	if(IS_ERR(newdir))
 		return PTR_ERR(newdir);
 
