@@ -1404,10 +1404,11 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 
 	d_entry->od_ino = entry_ino;
 
-	if(copy_from_user(d_entry->od_name, dentry->d_name.name, dentry->d_name.len)) {
-		eprintk("IO Error: copy_from_user in create\n");
-		return -EIO;
-	}
+	strncpy(newdir->od_name, dentry->d_name.name, dentry->d_name.len);
+	// if(copy_from_user(d_entry->od_name, dentry->d_name.name, dentry->d_name.len)) {
+	// 	eprintk("IO Error: copy_from_user in create\n");
+	// 	return -EIO;
+	// }
 
 
 	//set inode
