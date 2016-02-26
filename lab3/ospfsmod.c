@@ -1518,17 +1518,19 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
 	if(entry_ino == ospfs_super->os_ninodes) 
 		return -ENOSPC;
 
+	eprintk("about to make new inode location = somethng\n");
 	//make inode a symlink and check return
 	ospfs_symlink_inode_t *new_inode_location = (ospfs_symlink_inode_t *) ospfs_inode(entry_ino);
-	if(new_inode_location = NULL)
+	if(new_inode_location == NULL)
 		return -EIO;
 
 	//create directory and check return
-	ospfs_direntry_t *newdir = create_blank_direntry(dir_oi);
+	ospfs_direntry_t *newdir == create_blank_direntry(dir_oi);
 	if(IS_ERR(newdir))
 		return PTR_ERR(newdir);
 
 	//copy info to blank directory
+	eprintk("about to copy info to blank diretory\n");
 	if(copy_from_user(newdir, &entry_ino, 4))
 		return -EIO;
 	if(copy_from_user(newdir + 4, dentry->d_name.name, dentry->d_name.len))
