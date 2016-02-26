@@ -1361,7 +1361,6 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 	/* EXERCISE: Your code here. */
 	ospfs_direntry_t *d_entry;
 	ospfs_inode_t *inode;
-	ospfs_inode_t holder;
 
 	//name too long?
 	if(dentry->d_name.len > OSPFS_MAXNAMELEN)
@@ -1462,7 +1461,7 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
 		return -ENAMETOOLONG;
 
 	//is file type a directory?
-	if(dir->oi_ftype != OSPFS_FTYPE_DIR)
+	if(dir_oi->oi_ftype != OSPFS_FTYPE_DIR)
 		return -EIO;
 
 	//make sure that name doesnt exist
