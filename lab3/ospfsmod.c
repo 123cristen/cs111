@@ -1491,54 +1491,71 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
 	uint32_t entry_ino = 0;
 
 /* EXERCISE: Your code here. */
-//lab3 code begins
-	if (!dir || !dentry || !symname)
-		return -EINVAL;
 
-	if ((dentry->d_name.len == 0) || (strlen(symname) == 0))
-		return -EINVAL;
-
-	if ((dentry->d_name.len > OSPFS_MAXNAMELEN) || (strlen(symname) > OSPFS_MAXSYMLINKLEN))
+	//name too long?
+	if(dentry->d_name.len > OSPFS_MAXNAMELEN)
 		return -ENAMETOOLONG;
 
-	struct dentry *sym_tmp = ospfs_dir_lookup(dir, dentry, NULL);
-	if (IS_ERR(sym_tmp))
-		return PTR_ERR(sym_tmp);
-	if (sym_tmp->d_inode)
+	//make sure that name doesnt exist
+	if(find_direntry(dir_oi, dentry->d_name.name, dentry->d_name.len))
 		return -EEXIST;
 
-	ospfs_inode_t *oi = ospfs_block(ospfs_super->os_firstinob);
-	ospfs_inode_t *sym_oi = NULL;
-	int zerofill = 0;
-	for (entry_ino = 0; entry_ino < ospfs_super->os_ninodes; entry_ino++) {
-		sym_oi = &oi[entry_ino];
-		if (!sym_oi->oi_nlink) //link count 0 means free inode
-			break;
-		sym_oi = NULL;
+	//is file type a directory? TODO fix this
+	//if(dir->oi_ftype != OSPFS_FTYPE_DIR)
+	//	return -EIO;
+
+	if((dentry->d_name.len == 0) || (strlen(symname) == 0))
+		return -EINVAL;
+
+	ospfs_inode_t *inode;
+	//find empty inode, entry_ino will equal it after this loop
+	for ( entry_ino = 0; entry_ino < ospfs_super->os_ninodes; entry_ino++) {
+		inode = ospfs_inode(entry_ino);
+
+		if (inode->oi_nlink == 0) //returns true when finds empty inode
+			break; 
 	}
 
-	if (!sym_oi || (entry_ino == ospfs_super->os_ninodes)) //no free inode
+	//check that we didnt go through end of for loop
+	if(entry_ino == ospfs_super->os_ninodes) 
 		return -ENOSPC;
-	if (copy_from_user(sym_oi, &zerofill, OSPFS_INODESIZE))
-		return -EIO;
-	
-	ospfs_direntry_t *od = create_blank_direntry(dir_oi);
-	if (IS_ERR(od))
-		return PTR_ERR(od);
 
-	if(copy_from_user(od, &entry_ino, 4)) //inode number
-		return -EIO;
-	if(copy_from_user(od+4, dentry->d_name.name, dentry->d_name.len)) //name
+	eprintk("about to make new inode location = somethng\n");
+	//make inode a symlink and check return
+	ospfs_symlink_inode_t *new_inode_location = (ospfs_symlink_inode_t *) ospfs_inode(entry_ino);
+	if(new_inode_location == NULL)
 		return -EIO;
 
-	ospfs_symlink_inode_t temp;
-	temp.oi_size = strlen(symname);
-	temp.oi_ftype = OSPFS_FTYPE_SYMLINK;
-	temp.oi_nlink = 1;
-	strcpy(temp.oi_symlink, symname);
-	
-	if(copy_from_user(sym_oi, &temp, OSPFS_INODESIZE))
+	//create directory and check return
+	ospfs_direntry_t *newdir = create_blank_direntry(dir_oi);
+	if(IS_ERR(newdir))
+		return PTR_ERR(newdir);
+
+	//copy info to blank directory
+	eprintk("about to copy info to blank diretory 1 \n");
+	if(copy_from_user(newdir, &entry_ino, 4))
 		return -EIO;
+	
+	eprintk("about to copy info to blank diretory 2 \n");
+	if(copy_from_user(newdir + 4, dentry->d_name.name, dentry->d_name.len))
+		return -EIO;
+	/* TODO EXERCISE: Your code here. */
+
+	//make temp symlink
+	ospfs_symlink_inode_t holder;
+	holder.oi_size = strlen(symname);
+	holder.oi_ftype = OSPFS_FTYPE_SYMLINK;
+	holder.oi_nlink =1;
+	strcpy(holder.oi_symlink, symname);
+
+	//aight lets do this
+	ospfs_inode_t *linked = ospfs_block(ospfs_super->os_firstinob);
+	linked = &linked[entry_ino]; //found empty inode
+
+	eprintk("about to copy info to LINKED\n");
+	if(copy_from_user(linked, &holder, OSPFS_INODESIZE))
+		return -EIO;
+
 	//return -EINVAL;
 
 	/* Execute this code after your function has successfully created the
