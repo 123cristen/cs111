@@ -705,14 +705,10 @@ free_block(uint32_t blockno)
 
 static void zero_out_block(uint32_t b)
 {
-	void *block = ospfs_block(b);
-	// int i = 0;
-	// while (i < OSPFS_NINDIRECT) {
-	// 	block[i] = 0;
-	// }
-	long val = 0;
-	if (copy_from_user(block, &val, OSPFS_BLKSIZE) != 0) {
-		eprintk("copy from user error: zero\n");
+	uint32_t *block = (uint32_t*) ospfs_block(b);
+	int i = 0;
+	while (i < OSPFS_NINDIRECT) {
+		block[i] = 0;
 	}
 }
 
