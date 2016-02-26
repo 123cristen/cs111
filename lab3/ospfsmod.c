@@ -709,6 +709,7 @@ static void zero_out_block(uint32_t b)
 	int i = 0;
 	while (i < OSPFS_NINDIRECT) {
 		block[i] = 0;
+		i++;
 	}
 }
 
