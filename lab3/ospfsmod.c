@@ -870,8 +870,11 @@ remove_block(ospfs_inode_t *oi)
 	uint32_t * inblock;
 	uint32_t * in2block;
 
-	if (n < 0)
+	if (n < 0) {
+		eprintk("IO Error: n < 0\n");
 		return -EIO;
+	}
+
 	if (n == 0)
 		return 0;
 	n -= 1;
@@ -927,6 +930,7 @@ remove_block(ospfs_inode_t *oi)
 	}
 	// Too big, can't remove another block
 	else { // n > OSPFS_NDIRECT + 2*(OSPFS_INDIRECT)
+		eprintk("IO Error: too big\n");
 		return -EIO;
 	}
 	oi->oi_size -= OSPFS_BLKSIZE;
@@ -984,8 +988,11 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 	    	break;
 			
 	}
-	if(r == -EIO)
+	if(r == -EIO){
+		eprintk("IO error in change size\n");
 		return -EIO;
+	}
+		
 	else if(r == -ENOSPC)
 	{
 		//keep original size
@@ -1085,6 +1092,7 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 
 		// ospfs_inode_blockno returns 0 on error
 		if (blockno == 0) {
+			eprintk("IO error in read\n");
 			retval = -EIO;
 			goto done;
 		}
@@ -1168,6 +1176,7 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 		blockno = ospfs_inode_blockno(oi, *f_pos);
 
 		if (blockno == 0) {
+			eprintk("IO error in write\n");
 			retval = -EIO;
 			goto done;
 		}
@@ -1369,8 +1378,11 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 		return -ENAMETOOLONG;
 
 	//is file type a directory?
-	if(dir_oi->oi_ftype != OSPFS_FTYPE_DIR)
+	if(dir_oi->oi_ftype != OSPFS_FTYPE_DIR) {
+		eprintk("IO error in creating file\n");
 		return -EIO;
+	}
+		
 
 	//does directory entry already exist?
 	if(find_direntry(dir_oi, dentry->d_name.name, dentry->d_name.len))
@@ -1394,10 +1406,14 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 		return -ENOSPC;
 
 	d_entry->od_ino = entry_ino;
-	if(copy_from_user(d_entry, &entry_ino, 4)) //inode number
+	if(copy_from_user(d_entry, &entry_ino, 4)) {//inode number
+		eprintk("IO Error: copy_from_user in create\n");
 		return -EIO;
-	if(copy_from_user(d_entry+4, dentry->d_name.name, dentry->d_name.len))
+	}
+	if(copy_from_user(d_entry+4, dentry->d_name.name, dentry->d_name.len)) {
+		eprintk("IO Error: copy_from_user in create\n");
 		return -EIO;
+	}
 
 
 	//make a temporary inode
@@ -1410,8 +1426,10 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 	holder.oi_indirect2 = 0;
 
 
-	if(copy_from_user(inode, &holder, OSPFS_INODESIZE))
+	if(copy_from_user(inode, &holder, OSPFS_INODESIZE)) {
+		eprintk("IO Error: copy_from_user in create\n");
 		return -EIO;
+	}
 
 
 	//return -EINVAL; // Replace this line
