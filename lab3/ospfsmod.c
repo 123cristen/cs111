@@ -713,7 +713,6 @@ static void zero_out_block(uint32_t b)
 	long val = 0;
 	if (copy_from_user(block, &val, OSPFS_BLKSIZE) != 0) {
 		eprintk("copy from user error: zero\n");
-		return -EFAULT;
 	}
 }
 
@@ -764,9 +763,6 @@ add_block(ospfs_inode_t *oi)
 	uint32_t new_block = 0;
 	uint32_t *inblock = NULL;
 	uint32_t *in2block = NULL;
-
-	int i, j;
-	int nblocks;
 
 	//void *free_block_bitmap = ospfs_block(OSPFS_FREEMAP_BLK);
 	new_block = allocate_block();
@@ -914,14 +910,14 @@ remove_block(ospfs_inode_t *oi)
 	// Within indirect2 block
 	else if (n > OSPFS_NDIRECT + OSPFS_NINDIRECT +1 && n <= OSPFS_NDIRECT + OSPFS_NINDIRECT + (OSPFS_NINDIRECT)*(OSPFS_NINDIRECT)) {
 		in2block = ospfs_block(oi->oi_indirect2);
-		inblock = ospfs_block(in2block[n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT]);
+		inblock = ospfs_block(in2block[(n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT]);
 
-		if (n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT == 0 && inblock[n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT] != 0) {
+		if (((n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT) == 0 && inblock[(n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT] != 0) {
 			// remove indirect block
 			free_block(inblock[(n- OSPFS_NDIRECT) % OSPFS_NINDIRECT]);
 			inblock[(n- OSPFS_NDIRECT) % OSPFS_NINDIRECT] = 0;
-			free_block(in2block[n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT]);
-			in2block[n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT]] = 0;
+			free_block(in2block[(n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT]);
+			in2block[(n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT]] = 0;
 		}
 		else {
 			// just remove data block
