@@ -706,11 +706,7 @@ free_block(uint32_t blockno)
 static void zero_out_block(uint32_t b)
 {
 	uint32_t *block = (uint32_t*) ospfs_block(b);
-	int i = 0;
-	while (i < OSPFS_NINDIRECT) {
-		block[i] = 0;
-		i++;
-	}
+	memset(block, 0, 1024);
 }
 
 // add_block(ospfs_inode_t *oi)
@@ -1161,7 +1157,7 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	// size to accomodate the request.  (Use change_size().)
 	/* EXERCISE: Your code here */
 	if(count > oi->oi_size - *f_pos){
-		if (change_size(oi, count) != 0) {
+		if (change_size(oi, *f_pos+count) != 0) {
 			eprintk("IO error in write: change size\n");
 			retval = -EIO;
 		}
