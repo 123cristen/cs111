@@ -711,7 +711,10 @@ static void zero_out_block(uint32_t b)
 	// 	block[i] = 0;
 	// }
 	long val = 0;
-	copy_from_user(block, &val, OSPFS_BLKSIZE);
+	if (copy_from_user(block, &val, OSPFS_BLKSIZE) != 0) {
+		eprintk("copy from user error: zero\n");
+		return -EFAULT;
+	}
 }
 
 // add_block(ospfs_inode_t *oi)
@@ -773,10 +776,7 @@ add_block(ospfs_inode_t *oi)
 	// Check all possible cases for where to add the block
 	// Within the inode 
 	if (n < OSPFS_NDIRECT)  { 
-		i = 0;
-		while (oi->oi_direct[i] != 0 && i <= OSPFS_NDIRECT) i++;
-		if (i == OSPFS_NDIRECT) eprintk("Loop error! 1\n");
-		oi->oi_direct[i] = new_block;
+		oi->oi_direct[n] = new_block;
 	} 
 	// New indirect block
 	else if (n == OSPFS_NDIRECT) {
@@ -793,10 +793,8 @@ add_block(ospfs_inode_t *oi)
 	// Within indirect block
 	else if (n > OSPFS_NDIRECT && n < OSPFS_NDIRECT + OSPFS_NINDIRECT) {
 		inblock = ospfs_block(oi->oi_indirect);
-		i = 0;
-		while (inblock[i] != 0 && i <= OSPFS_NINDIRECT ) i++;
-		if (i == OSPFS_NINDIRECT) eprintk("Loop error! 1\n");
-		inblock[i] = new_block;
+
+		inblock[n-OSPFS_NDIRECT] = new_block;
 	}
 	// New indirect2 block
 	else if (n == OSPFS_NDIRECT + OSPFS_NINDIRECT) {
@@ -820,28 +818,19 @@ add_block(ospfs_inode_t *oi)
 	// Within indirect2 block
 	else if (n > OSPFS_NDIRECT + OSPFS_NINDIRECT && n < OSPFS_NDIRECT + OSPFS_NINDIRECT + (OSPFS_NINDIRECT)*(OSPFS_NINDIRECT)) {
 		in2block = ospfs_block(oi->oi_indirect2);
-		// Stop at last nonzero block in indirect2
-		i = 0;
-		while( i+1 < OSPFS_NINDIRECT && in2block[i+1] != 0) i++;
-		// check end case for above loop
-		if (i+1 == OSPFS_NINDIRECT && in2block[i+1] != 0) i++;
-		inblock = ospfs_block(in2block[i]);
-		// Stop at last nonzero block in indirect block
-		j = 0;
-		while(inblock[j] != 0 && j < OSPFS_NINDIRECT) j++;
-		if (j == OSPFS_NINDIRECT && inblock[j] != 0) {
-			// allocate new block if space
-			if (i == OSPFS_NINDIRECT) { free_block(new_block); return -ENOSPC; }
+		inblock = ospfs_block(in2block[(n-OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT]);
 
+		if (!inblock) {
+			// allocate new block if space
 			new_indirect = allocate_block();
 			if(new_indirect) zero_out_block(new_indirect);
 			else { free_block(new_block); return -ENOSPC; }
 			
-			in2block[i+1] = new_indirect;
+			in2block[(n-OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT] = new_indirect;
 			inblock[0] = new_block;
 		}
 		else {
-			inblock[j] = new_block;
+			inblock[(n- OSPFS_NDIRECT) % OSPFS_NINDIRECT] = new_block;
 		}
 	}
 	// Too big, can't add another block
@@ -882,25 +871,23 @@ remove_block(ospfs_inode_t *oi)
 	uint32_t n = ospfs_size2nblocks(oi->oi_size);
 
 	/* EXERCISE: Your code here */
-	int i, j, nblocks;
 	uint32_t * inblock;
 	uint32_t * in2block;
 
 	if (n < 0)
 		return -EIO;
+	if (n == 0)
+		return 0;
+	n -= 1;
 
 	// Check all possible cases for where to add the block
 	// Within the inode 
-	if (n <= OSPFS_NDIRECT)  { 
-		// Returns first zero value in direct array
-		i = 0;
-		while (oi->oi_direct[i] != 0 && i < OSPFS_NDIRECT) i++;
-		if (i == 0 && oi->oi_direct[i] == 0) return 0;
-		free_block(oi->oi_direct[i-1]);
-		oi->oi_direct[i-1] = 0;
+	if (n < OSPFS_NDIRECT)  { 
+		free_block(oi->oi_direct[n]);
+		oi->oi_direct[n] = 0;
 	} 
 	// Remove indirect block
-	else if (n == OSPFS_NDIRECT+1) {
+	else if (n == OSPFS_NDIRECT) {
 		inblock = ospfs_block(oi->oi_indirect);
 		free_block(inblock[0]);
 		inblock[0] = 0;
@@ -908,15 +895,13 @@ remove_block(ospfs_inode_t *oi)
 		oi->oi_indirect = 0;
 	}
 	// Within indirect block
-	else if (n > OSPFS_NDIRECT+1 && n <= OSPFS_NDIRECT + OSPFS_NINDIRECT) {
+	else if (n > OSPFS_NDIRECT && n < OSPFS_NDIRECT + OSPFS_NINDIRECT) {
 		inblock = ospfs_block(oi->oi_indirect);
-		i = 0;
-		while (inblock[i] != 0) i++;
-		free_block(inblock[i]);
-		inblock[i] = 0;
+		free_block(inblock[n-OSPFS_NDIRECT]);
+		inblock[n-OSPFS_NDIRECT] = 0;
 	}
 	// Remove indirect2 block
-	else if (n == OSPFS_NDIRECT + OSPFS_NINDIRECT+1) {
+	else if (n == OSPFS_NDIRECT + OSPFS_NINDIRECT) {
 		in2block = ospfs_block(oi->oi_indirect2);
 		inblock = ospfs_block(in2block[0]);
 		free_block(inblock[0]);
@@ -929,26 +914,19 @@ remove_block(ospfs_inode_t *oi)
 	// Within indirect2 block
 	else if (n > OSPFS_NDIRECT + OSPFS_NINDIRECT +1 && n <= OSPFS_NDIRECT + OSPFS_NINDIRECT + (OSPFS_NINDIRECT)*(OSPFS_NINDIRECT)) {
 		in2block = ospfs_block(oi->oi_indirect2);
-		// Stop at last nonzero block in indirect2
-		i = 0;
-		while( i+1 < OSPFS_NINDIRECT && in2block[i+1] != 0) i++;
-		// check end case for above loop
-		if (i+1 == OSPFS_NINDIRECT && in2block[i+1] != 0) i++;
-		inblock = ospfs_block(in2block[i]);
-		// Stop at last nonzero block in indirect block
-		j = 0;
-		while(inblock[j] != 0 && j < OSPFS_NINDIRECT) j++;
-		if (j == 0 && inblock[j] != 0) {
+		inblock = ospfs_block(in2block[n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT]);
+
+		if (n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT == 0 && inblock[n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT] != 0) {
 			// remove indirect block
-			free_block(inblock[0]);
-			inblock[0] = 0;
-			free_block(in2block[i]);
-			in2block[i] = 0;
+			free_block(inblock[(n- OSPFS_NDIRECT) % OSPFS_NINDIRECT]);
+			inblock[(n- OSPFS_NDIRECT) % OSPFS_NINDIRECT] = 0;
+			free_block(in2block[n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT]);
+			in2block[n- OSPFS_NDIRECT - OSPFS_NINDIRECT) / OSPFS_NINDIRECT]] = 0;
 		}
 		else {
 			// just remove data block
-			free_block(inblock[j]);
-			inblock[j] = 0;
+			free_block(inblock[(n- OSPFS_NDIRECT) % OSPFS_NINDIRECT]);
+			inblock[(n- OSPFS_NDIRECT) % OSPFS_NINDIRECT] = 0;
 		}
 	}
 	// Too big, can't remove another block
