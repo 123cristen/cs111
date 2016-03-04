@@ -52,10 +52,10 @@ int scheduling_algorithm;
 // UNCOMMENT THESE LINES IF YOU DO EXERCISE 4.A
 // Use these #defines to initialize your implementation.
 // Changing one of these lines should change the initialization.
-// #define __PRIORITY_1__ 1
-// #define __PRIORITY_2__ 2
-// #define __PRIORITY_3__ 3
-// #define __PRIORITY_4__ 4
+#define __PRIORITY_1__ 1
+#define __PRIORITY_2__ 2
+#define __PRIORITY_3__ 3
+#define __PRIORITY_4__ 4
 
 // UNCOMMENT THESE LINES IF YOU DO EXERCISE 4.B
 // Use these #defines to initialize your implementation.
@@ -114,6 +114,9 @@ start(void)
 
 		// Mark the process as runnable!
 		proc->p_state = P_RUNNABLE;
+
+		// Initialize priority level
+		proc->p_priority = proc->p_pid;
 	}
 
 	// Initialize the cursor-position shared variable to point to the
@@ -123,11 +126,11 @@ start(void)
 	// Initialize the scheduling algorithm.
 	// USE THE FOLLOWING VALUES:
 	//    0 = the initial algorithm
-	//    2 = strict priority scheduling (exercise 2)
-	//   41 = p_priority algorithm (exercise 4.a)
-	//   42 = p_share algorithm (exercise 4.b)
-	//    7 = any algorithm that you may implement for exercise 7
-	scheduling_algorithm = 1;
+	//    1 = strict priority scheduling (exercise 2)
+	//    2 = p_priority algorithm (exercise 4.a)
+	//    3 = p_share algorithm (exercise 4.b)
+	//    4 = any algorithm that you may implement for exercise 7
+	scheduling_algorithm = 2;
 
 	// Switch to the first process.
 	run(&proc_array[1]);
@@ -218,7 +221,9 @@ void
 schedule(void)
 {
 	pid_t pid = current->p_pid;
-	int i;
+	pid_t next;
+	pid_t start;
+	pid_t max;
 
 	if (scheduling_algorithm == 0)
 		while (1) {
@@ -237,6 +242,27 @@ schedule(void)
 			else
 				pid = (pid + 1) % NPROCS;
 		}
+	}
+	else if (scheduling_algorithm == 2) {
+		start = pid;
+		// Find next runnable process to start search at
+		do {
+			pid = (pid + 1) % NPROCS;
+			if (proc_array[pid].p_state == P_RUNNABLE)
+				break;
+		} while (pid != start)
+		
+		start = pid;
+		max = pid;
+		/* Find maximum in other processes, consider the current pid last
+			so that equivilant priorities will be run instead */
+		do {
+			pid = (pid + 1) % NPROCS;
+			if (proc_array[pid].p_priority > proc_array[max].p_priority && proc_array[pid] == P_RUNNABLE)
+				max = pid;
+		} while (pid != start)
+
+		run(&proc_array[pid]);
 	}
 
 	// If we get here, we are running an unknown scheduling algorithm.
