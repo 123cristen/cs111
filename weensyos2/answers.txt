@@ -16,11 +16,13 @@ The name of the scheduling algorithm is: round robin
 Response to Exercise 3:
 
 Average turnaround time for scheduling_algorithm 0:
+(320*4 + 320*4 - 1 + 320*4 - 2 + 320*4 - 3) / 4 = 1278.5 ms
 Average turnaround time for scheduling_algorithm 1:
-
+(320 + 640 + 960 + 1280) / 4 = 800 ms
 Average wait time for scheduling_algorithm 0:
+(0 + 1 + 2 + 3) / 4 = 1.5 ms
 Average wait time for scheduling_algorithm 1:
-
+(0 + 320 + 640 + 960)/4 = 480 ms
 
 Exercise 4:
 
