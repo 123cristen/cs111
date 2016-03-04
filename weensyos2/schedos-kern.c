@@ -53,9 +53,9 @@ int scheduling_algorithm;
 // Use these #defines to initialize your implementation.
 // Changing one of these lines should change the initialization.
 #define __PRIORITY_1__ 1
-#define __PRIORITY_2__ 2
-#define __PRIORITY_3__ 3
-#define __PRIORITY_4__ 4
+#define __PRIORITY_2__ 1
+#define __PRIORITY_3__ 2
+#define __PRIORITY_4__ 2
 
 // UNCOMMENT THESE LINES IF YOU DO EXERCISE 4.B
 // Use these #defines to initialize your implementation.
