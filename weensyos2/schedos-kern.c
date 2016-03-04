@@ -251,14 +251,13 @@ schedule(void)
 			if (proc_array[pid].p_state == P_RUNNABLE)
 				break;
 		} while (pid != start);
-		
 		start = pid;
 		max = pid;
 		/* Find maximum in other processes, consider the current pid last
 			so that equivilant priorities will be run instead */
 		do {
 			pid = (pid + 1) % NPROCS;
-			if (proc_array[pid].p_priority > proc_array[max].p_priority && proc_array[pid].p_state == P_RUNNABLE)
+			if (proc_array[pid].p_priority < proc_array[max].p_priority && proc_array[pid].p_state == P_RUNNABLE)
 				max = pid;
 		} while (pid != start);
 
