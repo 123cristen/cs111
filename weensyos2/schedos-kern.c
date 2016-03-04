@@ -118,16 +118,16 @@ start(void)
 		// Initialize priority level
 		switch(proc->p_pid) {
 			case 1:
-				proc-p_priority = __PRIORITY_1__;
+				proc->p_priority = __PRIORITY_1__;
 				break;
 			case 2:
-				proc-p_priority = __PRIORITY_2__;
+				proc->p_priority = __PRIORITY_2__;
 				break;
 			case 3:
-				proc-p_priority = __PRIORITY_3__;
+				proc->p_priority = __PRIORITY_3__;
 				break;
 			case 4:
-				proc-p_priority = __PRIORITY_4__;
+				proc->p_priority = __PRIORITY_4__;
 				break;
 		}
 	}
