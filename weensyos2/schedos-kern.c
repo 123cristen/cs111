@@ -116,7 +116,20 @@ start(void)
 		proc->p_state = P_RUNNABLE;
 
 		// Initialize priority level
-		proc->p_priority = proc->p_pid;
+		switch(proc->p_pid) {
+			case 1:
+				proc-p_priority = __PRIORITY_1__;
+				break;
+			case 2:
+				proc-p_priority = __PRIORITY_2__;
+				break;
+			case 3:
+				proc-p_priority = __PRIORITY_3__;
+				break;
+			case 4:
+				proc-p_priority = __PRIORITY_4__;
+				break;
+		}
 	}
 
 	// Initialize the cursor-position shared variable to point to the
@@ -263,7 +276,7 @@ schedule(void)
 			pid = (pid + 1) % NPROCS;
 		}
 
-		run(&proc_array[pid]);
+		run(&proc_array[max]);
 	}
 
 	// If we get here, we are running an unknown scheduling algorithm.
