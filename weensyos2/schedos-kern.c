@@ -245,21 +245,23 @@ schedule(void)
 	}
 	else if (scheduling_algorithm == 2) {
 		start = pid;
+		pid = (pid + 1) % NPROCS;
 		// Find next runnable process to start search at
-		do {
-			pid = (pid + 1) % NPROCS;
+		while (pid != start) {
 			if (proc_array[pid].p_state == P_RUNNABLE)
 				break;
-		} while (pid != start);
+			pid = (pid + 1) % NPROCS;
+		} 
 		start = pid;
 		max = pid;
+		pid = (pid + 1) % NPROCS;
 		/* Find maximum in other processes, consider the current pid last
 			so that equivilant priorities will be run instead */
-		do {
-			pid = (pid + 1) % NPROCS;
+		while (pid != start) {
 			if (proc_array[pid].p_priority < proc_array[max].p_priority && proc_array[pid].p_state == P_RUNNABLE)
 				max = pid;
-		} while (pid != start);
+			pid = (pid + 1) % NPROCS;
+		}
 
 		run(&proc_array[pid]);
 	}
