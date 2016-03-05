@@ -32,7 +32,7 @@ void
 start(void)
 {
 	int i;
-	sys_share(5);
+
 	for (i = 0; i < RUNCOUNT; i++) {
 		// Write characters to the console, yielding after each one.
 		*cursorpos++ = PRINTCHAR;
