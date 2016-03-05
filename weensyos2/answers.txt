@@ -27,10 +27,15 @@ Average wait time for scheduling_algorithm 1:
 Exercise 4:
 
 Did you complete Exercise 4A, Exercise 4B, or both for extra credit?
-
+Both were completed. Priorities and shares were assigned using macros, 
+they can be reassigned using system calls if necessary.
 
 Exercise 5:
-
+The first clock timer interrupt took place during process 4. Process 3 finished execution, and was
+printed out to the screen, so process 4 should be next in the round robin.
+However, it was interrupted before it could print, and schedule() was called
+after the interrupt. schedule() moves on to the next process, so process 1
+received its turn again instead of finishing process 4. 
 
 (Exercise 6 is a coding exercise)
 
