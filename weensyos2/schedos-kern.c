@@ -218,7 +218,7 @@ interrupt(registers_t *reg)
 		current->p_share = reg->reg_eax;
 		schedule();
 
-	case INT_SYS_SYNC
+	case INT_SYS_SYNC:
 		*cursorpos++ = reg->reg_eax;
 		schedule();
 
