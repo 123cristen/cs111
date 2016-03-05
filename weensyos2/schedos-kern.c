@@ -345,6 +345,12 @@ schedule(void)
 		// Check end case
 		if (proc_array[pid].p_level == 0 && proc_array[pid].p_state == P_RUNNABLE)
 			run(&proc_array[pid]);
+
+		while (1) {
+			if (proc_array[pid].p_state == P_RUNNABLE)
+				run(&proc_array[pid]);
+			pid = (pid + 1) % NPROCS;
+		}
 	}
 
 	// If we get here, we are running an unknown scheduling algorithm.
