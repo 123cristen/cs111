@@ -153,6 +153,7 @@ start(void)
 	scheduling_algorithm = __EXERCISE_4B__;
 
 	// Switch to the first process.
+	proc_array[1].p_time_run++;
 	run(&proc_array[1]);
 
 	// Should never get here!
