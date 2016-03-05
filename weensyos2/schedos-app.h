@@ -101,7 +101,7 @@ sys_share(int share)
  *
  *****************************************************************************/
 static inline void
-sys_sync(int print)
+sys_sync(uint16_t print)
 {
 	asm volatile("int %0\n"
 		     : : "i" (INT_SYS_SYNC),

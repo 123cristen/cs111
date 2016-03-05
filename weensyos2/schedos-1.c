@@ -20,6 +20,7 @@
 
 // UNCOMMENT THE NEXT LINE TO USE EXERCISE 8 CODE INSTEAD OF EXERCISE 6
 // #define __EXERCISE_8__
+ 
 // Use the following structure to choose between them:
 // #infdef __EXERCISE_8__
 // (exercise 6 code)
@@ -35,18 +36,16 @@ start(void)
 
 	for (i = 0; i < RUNCOUNT; i++) {
 		// Write characters to the console, yielding after each one.
-		#ifdef FIRSTSYNC
+		#ifndef __EXERCISE_8__
 		
 		while(atomic_swap(&lock, 1) != 0)
 			continue;
 		*cursorpos++ = PRINTCHAR;
 		atomic_swap(&lock, 0);
 
-		#endif
+		#else
 
-		#ifndef FIRSTSYNC
-
-		//sys_sync(PRINTCHAR);
+		sys_sync(PRINTCHAR);
 
 		#endif
 		sys_yield();
