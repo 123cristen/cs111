@@ -73,7 +73,7 @@ int scheduling_algorithm;
 #define __EXERCISE_7__   4  // any algorithm for exercise 7
 
 // Comment this out to use the second synchronization method for extra credit
-#define FIRSTSYNC
+//#define FIRSTSYNC
 
 
 /*****************************************************************************
