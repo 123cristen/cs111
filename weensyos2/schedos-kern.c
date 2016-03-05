@@ -323,16 +323,6 @@ schedule(void)
 		start = pid;
 		pid = (pid + 1) % NPROCS;
 
-		// Look through level 0 processes
-		while (pid != start) {
-			if (proc_array[pid].p_level == 0 && proc_array[pid].p_state == P_RUNNABLE)
-				run(&proc_array[pid]);
-			pid = (pid + 1) % NPROCS;
-		}
-		// Check end case
-		if (proc_array[pid].p_level == 0 && proc_array[pid].p_state == P_RUNNABLE)
-			run(&proc_array[pid]);
-		
 		// Look through level 1 processes
 		while(pid != start) {
 			if (proc_array[pid].p_level == 1 && proc_array[pid].p_state == P_RUNNABLE)
@@ -344,7 +334,17 @@ schedule(void)
 		if (proc_array[pid].p_level == 1 && proc_array[pid].p_state == P_RUNNABLE)
 			run(&proc_array[pid]);
 
-		
+		pid = (pid + 1) % NPROCS;
+
+		// Look through level 0 processes
+		while (pid != start) {
+			if (proc_array[pid].p_level == 0 && proc_array[pid].p_state == P_RUNNABLE)
+				run(&proc_array[pid]);
+			pid = (pid + 1) % NPROCS;
+		}
+		// Check end case
+		if (proc_array[pid].p_level == 0 && proc_array[pid].p_state == P_RUNNABLE)
+			run(&proc_array[pid]);
 	}
 
 	// If we get here, we are running an unknown scheduling algorithm.
