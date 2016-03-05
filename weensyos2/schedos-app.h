@@ -70,7 +70,13 @@ sys_exit(int status)
  *   IF YOU IMPLEMENT EXERCISE 4.A, NAME YOUR SYSTEM CALL sys_priority .
  *
  *****************************************************************************/
-
+sys_priority(int priority)
+{
+	asm volatile("int %0\n"
+		     : : "i" (INT_SYS_USER1),
+		     		"a" (priority)
+		     : "cc", "memory");
+}
 
 /*****************************************************************************
  * sys_share(???)
