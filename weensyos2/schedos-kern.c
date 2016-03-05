@@ -60,17 +60,17 @@ int scheduling_algorithm;
 // UNCOMMENT THESE LINES IF YOU DO EXERCISE 4.B
 // Use these #defines to initialize your implementation.
 // Changing one of these lines should change the initialization.
-// #define __SHARE_1__ 1
-// #define __SHARE_2__ 2
-// #define __SHARE_3__ 3
-// #define __SHARE_4__ 4
+#define __SHARE_1__ 1
+#define __SHARE_2__ 2
+#define __SHARE_3__ 3
+#define __SHARE_4__ 4
 
 // USE THESE VALUES FOR SETTING THE scheduling_algorithm VARIABLE.
 #define __EXERCISE_1__   0  // the initial algorithm
-#define __EXERCISE_2__   2  // strict priority scheduling (exercise 2)
-#define __EXERCISE_4A__ 41  // p_priority algorithm (exercise 4.a)
-#define __EXERCISE_4B__ 42  // p_share algorithm (exercise 4.b)
-#define __EXERCISE_7__   7  // any algorithm for exercise 7
+#define __EXERCISE_2__   1  // strict priority scheduling (exercise 2)
+#define __EXERCISE_4A__  2  // p_priority algorithm (exercise 4.a)
+#define __EXERCISE_4B__  3  // p_share algorithm (exercise 4.b)
+#define __EXERCISE_7__   4  // any algorithm for exercise 7
 
 
 /*****************************************************************************
@@ -115,19 +115,26 @@ start(void)
 		// Mark the process as runnable!
 		proc->p_state = P_RUNNABLE;
 
-		// Initialize priority level
+		// Set time run to 0
+		proc->p_time_run = 0;
+
+		// Initialize priority and share level
 		switch(proc->p_pid) {
 			case 1:
 				proc->p_priority = __PRIORITY_1__;
+				proc->p_share = __SHARE_1__;
 				break;
 			case 2:
 				proc->p_priority = __PRIORITY_2__;
+				proc->p_share = __SHARE_2__;
 				break;
 			case 3:
 				proc->p_priority = __PRIORITY_3__;
+				proc->p_share = __SHARE_3__;
 				break;
 			case 4:
 				proc->p_priority = __PRIORITY_4__;
+				proc->p_share = __SHARE_4__;
 				break;
 		}
 	}
@@ -143,7 +150,7 @@ start(void)
 	//    2 = p_priority algorithm (exercise 4.a)
 	//    3 = p_share algorithm (exercise 4.b)
 	//    4 = any algorithm that you may implement for exercise 7
-	scheduling_algorithm = 2;
+	scheduling_algorithm = __EXERCISE_4B__;
 
 	// Switch to the first process.
 	run(&proc_array[1]);
@@ -201,7 +208,8 @@ interrupt(registers_t *reg)
 
 	case INT_SYS_USER2:
 		/* Your code here (if you want). */
-		run(current);
+		current->p_share = reg->reg_eax;
+		schedule();
 
 	case INT_CLOCK:
 		// A clock interrupt occurred (so an application exhausted its
@@ -239,7 +247,7 @@ schedule(void)
 	pid_t start;
 	pid_t max;
 
-	if (scheduling_algorithm == 0)
+	if (scheduling_algorithm == __EXERCISE_1__)
 		while (1) {
 			pid = (pid + 1) % NPROCS;
 
@@ -249,7 +257,7 @@ schedule(void)
 			if (proc_array[pid].p_state == P_RUNNABLE)
 				run(&proc_array[pid]);
 		}
-	else if (scheduling_algorithm == 1) {
+	else if (scheduling_algorithm == __EXERCISE_2__) {
 		while (pid < NPROCS) {
 			if(proc_array[pid].p_state == P_RUNNABLE)
 				run(&proc_array[pid]);
@@ -257,7 +265,7 @@ schedule(void)
 				pid = (pid + 1) % NPROCS;
 		}
 	}
-	else if (scheduling_algorithm == 2) {
+	else if (scheduling_algorithm == __EXERCISE_4A__) {
 		start = pid;
 		pid = (pid + 1) % NPROCS;
 		// Find next runnable process to start search at
@@ -278,6 +286,19 @@ schedule(void)
 		}
 
 		run(&proc_array[max]);
+	}
+	else if (scheduling_algorithm == __EXERCISE_4B__) {
+		while (1) {
+			if (proc_array[pid].p_state == P_RUNNABLE) {
+				if (proc_array[pid].p_time_run == proc_array[pid].p_share) 
+					proc_array[pid].p_time_run = 0;
+				else {
+					proc_array[pid].p_time_run++;
+					run(proc_array[pid]);
+				}
+			}
+			pid = (pid + 1) % NPROCS;
+		}
 	}
 
 	// If we get here, we are running an unknown scheduling algorithm.
