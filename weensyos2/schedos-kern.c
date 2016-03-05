@@ -230,6 +230,10 @@ interrupt(registers_t *reg)
 		*cursorpos++ = reg->reg_eax;
 		schedule();
 
+	case INT_SYS_LEVEL:
+		current->p_level = reg->reg_eax;
+		schedule();
+
 	case INT_CLOCK:
 		// A clock interrupt occurred (so an application exhausted its
 		// time quantum).
@@ -345,6 +349,12 @@ schedule(void)
 		// Check end case
 		if (proc_array[pid].p_state == P_RUNNABLE)
 			run(&proc_array[pid]);
+
+		while (1) {
+			if (proc_array[pid].p_state == P_RUNNABLE)
+				run(&proc_array[pid]);
+			pid = (pid + 1) % NPROCS;
+		}
 	}
 
 	// If we get here, we are running an unknown scheduling algorithm.

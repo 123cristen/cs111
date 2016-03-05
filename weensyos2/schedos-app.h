@@ -108,3 +108,18 @@ sys_sync(uint16_t print)
 		     		"a" (print)
 		     : "cc", "memory");
 }
+
+/*****************************************************************************
+ * sys_level()
+ *
+ *   SET LEVEL FOR EXERCISE 7
+ *
+ *****************************************************************************/
+static inline void
+sys_level(int level)
+{
+	asm volatile("int %0\n"
+		     : : "i" (INT_SYS_LEVEL),
+		     		"a" (level)
+		     : "cc", "memory");
+}
