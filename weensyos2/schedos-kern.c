@@ -168,8 +168,7 @@ start(void)
 	scheduling_algorithm = __EXERCISE_7__;
 
 	// Switch to the first process.
-	proc_array[1].p_time_run++;
-	run(&proc_array[1]);
+	schedule();
 
 	// Should never get here!
 	while (1)
@@ -323,6 +322,16 @@ schedule(void)
 	else if (scheduling_algorithm == __EXERCISE_7__) {
 		start = pid;
 		pid = (pid + 1) % NPROCS;
+
+		// Look through level 0 processes
+		while (pid != start) {
+			if (proc_array[pid].p_level == 0 && proc_array[pid].p_state == P_RUNNABLE)
+				run(&proc_array[pid]);
+			pid = (pid + 1) % NPROCS;
+		}
+		// Check end case
+		if (proc_array[pid].p_level == 0 && proc_array[pid].p_state == P_RUNNABLE)
+			run(&proc_array[pid]);
 		
 		// Look through level 1 processes
 		while(pid != start) {
@@ -335,15 +344,7 @@ schedule(void)
 		if (proc_array[pid].p_level == 1 && proc_array[pid].p_state == P_RUNNABLE)
 			run(&proc_array[pid]);
 
-		// Look through level 0 processes
-		while (pid != start) {
-			if (proc_array[pid].p_level == 0 && proc_array[pid].p_state == P_RUNNABLE)
-				run(&proc_array[pid]);
-			pid = (pid + 1) % NPROCS;
-		}
-		// Check end case
-		if (proc_array[pid].p_state == P_RUNNABLE)
-			run(&proc_array[pid]);
+		
 	}
 
 	// If we get here, we are running an unknown scheduling algorithm.
