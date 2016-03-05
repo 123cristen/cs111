@@ -35,8 +35,10 @@ start(void)
 
 	for (i = 0; i < RUNCOUNT; i++) {
 		// Write characters to the console, yielding after each one.
+		atomic_swap(&lock, 1);
 		*cursorpos++ = PRINTCHAR;
 		sys_yield();
+		atomic_swap(&lock, 0);
 	}
 	sys_exit(0);
 	// Yield forever.

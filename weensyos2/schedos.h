@@ -22,4 +22,7 @@
 
 extern uint16_t * volatile cursorpos;
 
+// Define a lock
+extern uint32_t lock;
+
 #endif
