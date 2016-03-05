@@ -323,22 +323,26 @@ schedule(void)
 	else if (scheduling_algorithm == __EXERCISE_7__) {
 		start = pid;
 		pid = (pid + 1) % NPROCS;
+		
+		// Look through level 1 processes
 		while(pid != start) {
 			if (proc_array[pid].p_level == 1 && proc_array[pid].p_state == P_RUNNABLE)
 				run(&proc_array[pid]);
 			pid = (pid + 1) % NPROCS;
 		}
-		if (pid == start && proc_array[pid].p_level == 1 && proc_array[pid].p_state == P_RUNNABLE)
+
+		// Check end case
+		if (proc_array[pid].p_level == 1 && proc_array[pid].p_state == P_RUNNABLE)
 			run(&proc_array[pid]);
 
-		start = pid;
+		// Look through level 0 processes
 		while (pid != start) {
 			if (proc_array[pid].p_level == 0 && proc_array[pid].p_state == P_RUNNABLE)
 				run(&proc_array[pid]);
 			pid = (pid + 1) % NPROCS;
 		}
-
-		if (pid == start && proc_array[pid].p_state == P_RUNNABLE)
+		// Check end case
+		if (proc_array[pid].p_state == P_RUNNABLE)
 			run(&proc_array[pid]);
 	}
 
