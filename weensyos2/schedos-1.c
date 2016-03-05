@@ -46,7 +46,7 @@ start(void)
 
 		#ifndef FIRSTSYNC
 
-		sys_sync(PRINTCHAR);
+		//sys_sync(PRINTCHAR);
 
 		#endif
 		sys_yield();
