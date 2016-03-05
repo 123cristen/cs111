@@ -31,17 +31,27 @@ Both were completed. Priorities and shares were assigned using macros,
 they can be reassigned using system calls if necessary.
 
 Exercise 5:
-The first clock timer interrupt took place during process 4. Process 3 finished execution, and was
-printed out to the screen, so process 4 should be next in the round robin.
-However, it was interrupted before it could print, and schedule() was called
-after the interrupt. schedule() moves on to the next process, so process 1
-received its turn again instead of finishing process 4. 
+The first clock timer interrupt took place during process 4. Process 3 
+finished execution, and was printed out to the screen, so process 4 
+should be next in the round robin. However, it was interrupted before 
+it could print, and schedule() was called after the interrupt. 
+schedule() moves on to the next process, so process 1 received its 
+turn again instead of finishing process 4. 
 
 (Exercise 6 is a coding exercise)
 
 
 Anything else you'd like us to know:
 
-
-
 Extra credit exercises:
+For exercise 7, I implemented multilevel queue scheduling. Processes 
+can be at one of two levels, represented by 1 for higher priority level 
+and 0 for lower priority level. I followed a similar structure to 
+the SHARE and PRIORITY schedulers by implementing a system call so a
+process can change its priority level.
+
+Exercise 8 can be tested by uncommenting the #define __EXERCISE_8__ 
+(line 22 in schedos-1.c)
+
+
+

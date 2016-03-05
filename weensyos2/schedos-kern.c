@@ -65,6 +65,14 @@ int scheduling_algorithm;
 #define __SHARE_3__ 3
 #define __SHARE_4__ 4
 
+// EXERCISE 7: Level can be 1 or 0. 
+// Use these #defines to initialize your implementation.
+// Changing one of these lines should change the initialization.
+#define __LEVEL_1__ 1
+#define __LEVEL_2__ 0
+#define __LEVEL_3__ 1
+#define __LEVEL_4__ 0
+
 // USE THESE VALUES FOR SETTING THE scheduling_algorithm VARIABLE.
 #define __EXERCISE_1__   0  // the initial algorithm
 #define __EXERCISE_2__   1  // strict priority scheduling (exercise 2)
@@ -88,7 +96,7 @@ start(void)
 
 	// Set up hardware (schedos-x86.c)
 	segments_init();
-	interrupt_controller_init(1);
+	interrupt_controller_init(0);
 	console_clear();
 
 	// Initialize process descriptors as empty
@@ -123,18 +131,22 @@ start(void)
 			case 1:
 				proc->p_priority = __PRIORITY_1__;
 				proc->p_share = __SHARE_1__;
+				proc->p_level = __LEVEL_1__;
 				break;
 			case 2:
 				proc->p_priority = __PRIORITY_2__;
 				proc->p_share = __SHARE_2__;
+				proc->p_level = __LEVEL_2__;
 				break;
 			case 3:
 				proc->p_priority = __PRIORITY_3__;
 				proc->p_share = __SHARE_3__;
+				proc->p_level = __LEVEL_3__;
 				break;
 			case 4:
 				proc->p_priority = __PRIORITY_4__;
 				proc->p_share = __SHARE_4__;
+				proc->p_level = __LEVEL_4__;
 				break;
 		}
 	}
@@ -153,7 +165,7 @@ start(void)
 	//    2 = p_priority algorithm (exercise 4.a)
 	//    3 = p_share algorithm (exercise 4.b)
 	//    4 = any algorithm that you may implement for exercise 7
-	scheduling_algorithm = __EXERCISE_1__;
+	scheduling_algorithm = __EXERCISE_7__;
 
 	// Switch to the first process.
 	proc_array[1].p_time_run++;
@@ -307,6 +319,27 @@ schedule(void)
 			}
 			pid = (pid + 1) % NPROCS;
 		}
+	}
+	else if (scheduling_algorithm == __EXERCISE_7__) {
+		start = pid;
+		pid = (pid + 1) % NPROCS;
+		while(pid != start) {
+			if (proc_array[pid].p_level == 1 && proc_array[pid].p_state == P_RUNNABLE)
+				run(&proc_array[pid]);
+			pid = (pid + 1) % NPROCS;
+		}
+		if (pid == start && proc_array[pid].p_level == 1 && proc_array[pid].p_state == P_RUNNABLE)
+			run(&proc_array[pid]);
+
+		start = pid;
+		while (pid != start) {
+			if (proc_array[pid].p_level == 0 && proc_array[pid].p_state == P_RUNNABLE)
+				run(&proc_array[pid]);
+			pid = (pid + 1) % NPROCS;
+		}
+
+		if (pid == start && proc_array[pid].p_state == P_RUNNABLE)
+			run(&proc_array[pid]);
 	}
 
 	// If we get here, we are running an unknown scheduling algorithm.

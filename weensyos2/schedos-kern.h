@@ -33,6 +33,7 @@ typedef struct process {
 	int p_priority; 		// Process's priority
 	int p_share;			// Process's share
 	int p_time_run;		// Process's time run
+	int p_level;			// Process's level
 } process_t;
 
 
