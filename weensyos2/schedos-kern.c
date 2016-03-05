@@ -294,7 +294,7 @@ schedule(void)
 					proc_array[pid].p_time_run = 0;
 				else {
 					proc_array[pid].p_time_run++;
-					run(proc_array[pid]);
+					run(&proc_array[pid]);
 				}
 			}
 			pid = (pid + 1) % NPROCS;
