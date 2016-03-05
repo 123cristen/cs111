@@ -74,7 +74,7 @@ static inline void
 sys_priority(int priority)
 {
 	asm volatile("int %0\n"
-		     : : "i" (INT_SYS_USER1),
+		     : : "i" (INT_SYS_PRIORITY),
 		     		"a" (priority)
 		     : "cc", "memory");
 }
@@ -89,7 +89,7 @@ static inline void
 sys_share(int share)
 {
 	asm volatile("int %0\n"
-		     : : "i" (INT_SYS_USER2),
+		     : : "i" (INT_SYS_SHARE),
 		     		"a" (share)
 		     : "cc", "memory");
 }

@@ -88,7 +88,7 @@ start(void)
 
 	// Set up hardware (schedos-x86.c)
 	segments_init();
-	interrupt_controller_init(0);
+	interrupt_controller_init(1);
 	console_clear();
 
 	// Initialize process descriptors as empty
@@ -150,7 +150,7 @@ start(void)
 	//    2 = p_priority algorithm (exercise 4.a)
 	//    3 = p_share algorithm (exercise 4.b)
 	//    4 = any algorithm that you may implement for exercise 7
-	scheduling_algorithm = __EXERCISE_4B__;
+	scheduling_algorithm = __EXERCISE_1__;
 
 	// Switch to the first process.
 	proc_array[1].p_time_run++;
@@ -200,14 +200,14 @@ interrupt(registers_t *reg)
 		current->p_exit_status = reg->reg_eax;
 		schedule();
 
-	case INT_SYS_USER1:
+	case INT_SYS_PRIORITY:
 		// 'sys_user*' are provided for your convenience, in case you
 		// want to add a system call.
 		/* Your code here (if you want). */
 		current->p_priority = reg->reg_eax;
 		schedule();
 
-	case INT_SYS_USER2:
+	case INT_SYS_SHARE:
 		/* Your code here (if you want). */
 		current->p_share = reg->reg_eax;
 		schedule();
