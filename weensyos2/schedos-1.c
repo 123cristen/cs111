@@ -35,11 +35,20 @@ start(void)
 
 	for (i = 0; i < RUNCOUNT; i++) {
 		// Write characters to the console, yielding after each one.
+		#ifdef FIRSTSYNC
+		
 		while(atomic_swap(&lock, 1) != 0)
 			continue;
 		*cursorpos++ = PRINTCHAR;
 		atomic_swap(&lock, 0);
 
+		#endif
+
+		#ifndef FIRSTSYNC
+
+		sys_sync(PRINTCHAR);
+
+		#endif
 		sys_yield();
 	}
 	sys_exit(0);

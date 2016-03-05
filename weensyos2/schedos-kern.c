@@ -72,6 +72,9 @@ int scheduling_algorithm;
 #define __EXERCISE_4B__  3  // p_share algorithm (exercise 4.b)
 #define __EXERCISE_7__   4  // any algorithm for exercise 7
 
+// Comment this out to use the second synchronization method for extra credit
+//#define FIRST
+
 
 /*****************************************************************************
  * start
@@ -213,6 +216,10 @@ interrupt(registers_t *reg)
 	case INT_SYS_SHARE:
 		/* Your code here (if you want). */
 		current->p_share = reg->reg_eax;
+		schedule();
+
+	case INT_SYS_SYNC
+		*cursorpos++ = reg->reg_eax;
 		schedule();
 
 	case INT_CLOCK:

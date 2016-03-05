@@ -94,4 +94,17 @@ sys_share(int share)
 		     : "cc", "memory");
 }
 
-
+/*****************************************************************************
+ * sys_sync()
+ *
+ *   ALTERNATE SYNC FUNCTION FOR EXERCISE 8
+ *
+ *****************************************************************************/
+static inline void
+sys_sync(int print)
+{
+	asm volatile("int %0\n"
+		     : : "i" (INT_SYS_SYNC),
+		     		"a" (print)
+		     : "cc", "memory");
+}
