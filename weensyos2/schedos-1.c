@@ -33,7 +33,7 @@ void
 start(void)
 {
 	int i;
-	sys_level(0);
+
 	for (i = 0; i < RUNCOUNT; i++) {
 		// Write characters to the console, yielding after each one.
 		#ifndef __EXERCISE_8__
