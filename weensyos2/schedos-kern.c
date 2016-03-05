@@ -291,7 +291,7 @@ schedule(void)
 	else if (scheduling_algorithm == __EXERCISE_4B__) {
 		while (1) {
 			if (proc_array[pid].p_state == P_RUNNABLE) {
-				if (proc_array[pid].p_time_run == proc_array[pid].p_share) 
+				if (proc_array[pid].p_time_run >= proc_array[pid].p_share) 
 					proc_array[pid].p_time_run = 0;
 				else {
 					proc_array[pid].p_time_run++;
