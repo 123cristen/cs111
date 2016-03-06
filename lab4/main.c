@@ -5,6 +5,7 @@
 #include <math.h>
 #include <getopt.h>
 #include <pthread.h>
+#include <string.h>
 
 // Global counter for all the threads
 static long long counter = 0;
