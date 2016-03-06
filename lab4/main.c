@@ -75,13 +75,19 @@ void csum(void *arg) {
 	int n = *(int *)arg;
 	for (int i = 0; i < n; ++i) {
 		do {
-			add(&counter, 1);
-		} while(_sync_val_compare_and_swap(pointer, orig, sum)!= orig);
+			long long sum = *counter + 1;
+      if (opt_yield) 
+      	pthread_yield();
+      *counter = sum;
+		} while(__sync_val_compare_and_swap(pointer, orig, sum)!= orig);
 	}
 	for (int i = 0; i < n; ++i) {
 		do {
-			add(&counter, -1);
-		} while(_sync_val_compare_and_swap(pointer, orig, sum)!= orig);
+			long long sum = *counter - 1;
+      if (opt_yield) 
+      	pthread_yield();
+      *counter = sum;
+		} while(__sync_val_compare_and_swap(pointer, orig, sum)!= orig);
 	}
 }
 
@@ -97,7 +103,7 @@ int main(int argc, char **argv) {
 		// Can be reset using command line options
 	int num_iter = 1;
 	int num_threads = 1;
-	char sync = 'n'
+	char sync = 'n';
 	int operations;
 	int i; // iterator
 	int ret; // return value
@@ -147,7 +153,7 @@ int main(int argc, char **argv) {
 	    		if (optarg == "m" || optarg == "s" || optarg == "c")
 	    			sync = optarg[0];
 	    		else {
-	    			fprintf("ERROR: invalid sync option: %s\n", optarg);
+	    			fprintf(stderr, "ERROR: invalid sync option: %s\n", optarg);
 	    			exit(1);
 	    		}
 	    	}
