@@ -4,14 +4,21 @@
 #include <math.h>
 #include <getopt.h>
 #include <pthread.h>
+#define _GNU_SOURCE
 
 // Global counter for all the threads
 static long long counter = 0;
+
+// Set to 1 if want to yield and cause race
+// condition errors more consistently
+int opt_yield;
 
 // Add subroutine: has race conditions
 // Adds value to *pointer
 void add(long long *pointer, long long value) {
         long long sum = *pointer + value;
+        if (opt_yield) 
+        	pthread_yield();
         *pointer = sum;
 }
 
@@ -55,7 +62,8 @@ int main(int argc, char **argv) {
     static struct option long_options[] = {
     	// { "name",      has_arg,         *flag, val }
         {"threads",      optional_argument,  0,  't' }, 
-        {"iterations",      optional_argument,  0,  'i' }, 
+        {"iterations",      optional_argument,  0,  'i' },
+        {"yield",      optional_argument,  0,  'y' },  
         {0,             0,                  0,   0  } // error handling
     };
 
@@ -75,6 +83,11 @@ int main(int argc, char **argv) {
 	    case 'i': // iterations
 	    	if (optarg != NULL) // single thread
 	    		num_iter = atoi(optarg);
+	    	break;
+	    
+	    case 'y': // yield
+	    	if (optarg != NULL)
+	    		opt_yield = atoi(optarg);
 	    	break;
 
 	    case '?': // ? returns when doesn't recognize option character

@@ -2,3 +2,24 @@ CS111 Lab 4
 
 Part 1:
 
+QUESTIONS 1.1
+
+1) It takes a large number of iterations/threads for an error
+to occur because race conditions are more likely to result in
+errors the more times they occur. In this case, the more times
+the global variable counter is modified by different threads,
+the more likely they are to write over each other. In my tests,
+I set threads to 10 and iterations to 500 to cause consistent
+failure.
+
+2) A significantly smaller number of iterations seldom fails
+because it is more likely that the race conditions will not
+result in an incorrect value. For example, if iterations is 1,
+and there are 3 threads, imagine if thread 2 reads the value of 
+counter to be zero. Before it can update the counter to 1, 
+thread 2 sets the counter to 1 and then back to 0. Then 
+thread 1 will correctly update counter to 1, so even though
+there were race conditions the result will be correct in the
+end. These types of coincidences are more likely when there
+is a smaller range for counter, which happens when the number
+of iterations is smaller.

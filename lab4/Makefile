@@ -1,7 +1,7 @@
 # Makefile for CS 111 Lab 4
 
 CC = gcc
-CFLAGS = -pthread
+CFLAGS = -pthread -lrt
 DISTDIR=lab4-cristen
 default: addtest
 
