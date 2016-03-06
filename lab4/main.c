@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
 		// Can be reset using command line options
 	int num_iter = 1;
 	int num_threads = 1;
-	char* sync = "n"
+	char sync = 'n'
 	int operations;
 	int i; // iterator
 	int ret; // return value
@@ -144,16 +144,11 @@ int main(int argc, char **argv) {
 
 	    case 's': // sync
 	    	if (optarg != NULL) {
-	    		switch(optarg) {
-	    			case "m": // pthread_mutex
-	    			case "s": // spinlock using __sync functions
-	    			case "c": // compare and swap
-	    				sync = optarg;
-	    				break;
-
-	    			default:
-	    				fprintf("ERROR: invalid sync option: %s\n", optarg);
-	    				exit(1);
+	    		if (optarg == "m" || optarg == "s" || optarg == "c")
+	    			sync = optarg[0];
+	    		else {
+	    			fprintf("ERROR: invalid sync option: %s\n", optarg);
+	    			exit(1);
 	    		}
 	    	}
 	    	break;
@@ -178,7 +173,7 @@ int main(int argc, char **argv) {
 
   for (i = 0; i < num_threads; i++) {
   	switch(sync) {
-  		case "n": // no synchronization
+  		case 'n': // no synchronization
   			ret = pthread_create(&threads[i], NULL, (void *) &sum, (void *)&num_iter);
 		  	if (ret != 0) {
 		  		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
@@ -186,7 +181,7 @@ int main(int argc, char **argv) {
 		  	}
 		  	break;
 
-  		case "m": // pthread_mutex
+  		case 'm': // pthread_mutex
   			ret = pthread_create(&threads[i], NULL, (void *) &msum, (void *)&num_iter);
 		  	if (ret != 0) {
 		  		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
@@ -194,7 +189,7 @@ int main(int argc, char **argv) {
 		  	}
   			break;
 
-	    case "s": // spinlock using __sync functions
+	    case 's': // spinlock using __sync functions
 	    	ret = pthread_create(&threads[i], NULL, (void *) &ssum, (void *)&num_iter);
 		  	if (ret != 0) {
 		  		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
@@ -202,7 +197,7 @@ int main(int argc, char **argv) {
 		  	}
 	    	break;
 
-	    case "c": // compare and swap
+	    case 'c': // compare and swap
 	    	ret = pthread_create(&threads[i], NULL, (void *) &csum, (void *)&num_iter);
 		  	if (ret != 0) {
 		  		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
