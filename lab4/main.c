@@ -75,19 +75,19 @@ void csum(void *arg) {
 	int n = *(int *)arg;
 	for (int i = 0; i < n; ++i) {
 		do {
-			long long sum = *counter + 1;
+			int orig = counter;
+			long long sum = orig + 1;
       if (opt_yield) 
       	pthread_yield();
-      *counter = sum;
-		} while(__sync_val_compare_and_swap(pointer, orig, sum)!= orig);
+		} while(__sync_val_compare_and_swap(&counter, orig, sum)!= orig);
 	}
 	for (int i = 0; i < n; ++i) {
 		do {
-			long long sum = *counter - 1;
+			int orig = counter;
+			long long sum = orig - 1;
       if (opt_yield) 
       	pthread_yield();
-      *counter = sum;
-		} while(__sync_val_compare_and_swap(pointer, orig, sum)!= orig);
+		} while(__sync_val_compare_and_swap(&counter, orig, sum)!= orig);
 	}
 }
 
