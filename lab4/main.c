@@ -73,9 +73,10 @@ void ssum(void *arg) {
 
 void csum(void *arg) {
 	int n = *(int *)arg;
+	int orig;
 	for (int i = 0; i < n; ++i) {
 		do {
-			int orig = counter;
+			orig = counter;
 			long long sum = orig + 1;
       if (opt_yield) 
       	pthread_yield();
@@ -83,7 +84,7 @@ void csum(void *arg) {
 	}
 	for (int i = 0; i < n; ++i) {
 		do {
-			int orig = counter;
+			orig = counter;
 			long long sum = orig - 1;
       if (opt_yield) 
       	pthread_yield();
