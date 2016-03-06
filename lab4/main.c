@@ -19,7 +19,7 @@ void add(long long *pointer, long long value) {
 // adds 1 to counter n times
 // subtracts 1 from counter n times
 void sum(void *arg) {
-	int n = *arg;
+	int n = *(int *)arg;
 	for (int i = 0; i < n; ++i) {
 		add(&counter, 1);
 	}
@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
   pthread_t* threads = malloc(num_threads*sizeof(pthread_t));
 
   for (i = 0; i < num_threads; i++) {
-  	ret = pthread_create(threads[i], NULL, (void *) &sum, (void *)&num_iter);
+  	ret = pthread_create(&threads[i], NULL, (void *) &sum, (void *)&num_iter);
   	if (ret != 0) {
   		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
   		exit(1);
@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
   }
 
   for (i = 0; i < num_threads; i++) {
-  	ret = pthread_join(threads[i], NULL);
+  	ret = pthread_join(&threads[i], NULL);
   	if (ret != 0) {
   		fprintf(stderr, "ERROR: joining threads: error code is %d\n", ret);
   		exit(1);
