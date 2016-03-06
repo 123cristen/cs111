@@ -183,6 +183,7 @@ int main(int argc, char **argv) {
 
   for (i = 0; i < num_threads; i++) {
   	switch(sync) {
+  		
   		case 'n': // no synchronization
   			ret = pthread_create(&threads[i], NULL, (void *) &sum, (void *)&num_iter);
 		  	if (ret != 0) {
