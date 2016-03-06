@@ -1,10 +1,10 @@
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
 #include <getopt.h>
 #include <pthread.h>
-#define _GNU_SOURCE
 
 // Global counter for all the threads
 static long long counter = 0;
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
 	    		num_iter = atoi(optarg);
 	    	break;
 	    
-	    case 'y': // yield
+	    ucase 'y': // yield
 	    	if (optarg != NULL)
 	    		opt_yield = atoi(optarg);
 	    	break;
