@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <math.h>
 #include <getopt.h>
 
 // Global counter for all the threads
@@ -27,7 +28,7 @@ int main(int argc, char **argv) {
 	int num_threads = 1;
 	int operations;
 
-	if (clock_gettime(CLOCK_MONOTONIC, start) != 0) {
+	if (clock_gettime(CLOCK_MONOTONIC, &start) != 0) {
 		fprintf(stderr, "clock_gettime error\n");
 	}
 
@@ -69,10 +70,10 @@ int main(int argc, char **argv) {
   if (clock_gettime(CLOCK_MONOTONIC, &end) != 0)
 		fprintf(stderr, "clock_gettime error\n");
 	
-  endTime = (long long)(end.tv_sec*pow(10, 6) + end.tv_usec);
-  startTime = (long long) (start.tv_sec*pow(10, 6) + start.tv_usec);
+  endTime = (long long)(end.tv_sec*pow(10, 9) + end.tv_nsec);
+  startTime = (long long) (start.tv_sec*pow(10, 9) + start.tv_nsec);
   totalTime = endTime-startTime;
-  operations = num_threads*num_iter*2
+  operations = num_threads*num_iter*2;
   
 
   // Print to stdout
@@ -81,8 +82,7 @@ int main(int argc, char **argv) {
   if (counter != 0)
   	printf("ERROR: final count = %d\n", counter);
   printf("elapsed time: ns\n", totalTime);
-  printf("per operation: %d ns", totalTime/operations)
-}
+  printf("per operation: %d ns", totalTime/operations);
 
   exit(0);
 }
