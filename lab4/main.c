@@ -112,6 +112,9 @@ int main(int argc, char **argv) {
 	int i; // iterator
 	int ret; // return value
 
+	// Initialize the mutex lock
+	pthread_mutext_init(&lock, NULL);
+
 	if (clock_gettime(CLOCK_MONOTONIC, &start) != 0) {
 		fprintf(stderr, "ERROR: clock_gettime\n");
 		exit(1);
@@ -183,7 +186,7 @@ int main(int argc, char **argv) {
 
   for (i = 0; i < num_threads; i++) {
   	switch(sync) {
-  		
+
   		case 'n': // no synchronization
   			ret = pthread_create(&threads[i], NULL, (void *) &sum, (void *)&num_iter);
 		  	if (ret != 0) {
