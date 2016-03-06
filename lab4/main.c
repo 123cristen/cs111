@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
 	    case 's': // sync
 	    	if (optarg != NULL) {
 	    		printf("optarg: %s\n", optarg);
-	    		if (strcmp(optarg, "m") || strcmp(optarg, "s") || strcmp(optarg, "c")) {
+	    		if (!strcmp(optarg, "m") && !strcmp(optarg, "s") && !strcmp(optarg, "c")) {
 	    			fprintf(stderr, "ERROR: invalid sync option: %s\n", optarg);
 	    			exit(1);
 	    		}
