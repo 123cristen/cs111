@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
 	int ret; // return value
 
 	// Initialize the mutex lock
-	pthread_mutext_init(&lock, NULL);
+	pthread_mutex_init(&lock, NULL);
 
 	if (clock_gettime(CLOCK_MONOTONIC, &start) != 0) {
 		fprintf(stderr, "ERROR: clock_gettime\n");
