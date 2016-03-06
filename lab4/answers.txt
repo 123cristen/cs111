@@ -23,3 +23,11 @@ there were race conditions the result will be correct in the
 end. These types of coincidences are more likely when there
 is a smaller range for counter, which happens when the number
 of iterations is smaller.
+
+QUESTIONS 1.2
+
+1)
+2)
+3) --yield operations are much slower because there is a lot
+of time spent on context switching between threads. 
+4)

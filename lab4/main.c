@@ -13,6 +13,12 @@ static long long counter = 0;
 // condition errors more consistently
 int opt_yield;
 
+// pthread lock for mutex synchronization
+static pthread_mutex_t lock;
+
+// spinlock
+volatile static int lock_m = 0;
+
 // Add subroutine: has race conditions
 // Adds value to *pointer
 void add(long long *pointer, long long value) {
@@ -35,6 +41,50 @@ void sum(void *arg) {
 	}
 }
 
+// Mutex synchronization version
+void msum(void *arg) {
+	int n = *(int *)arg;
+	for (int i = 0; i < n; ++i) {
+		pthread_mutex_lock(&lock);
+		add(&counter, 1);
+		pthread_mutex_unlock(&lock);
+	}
+	for (int i = 0; i < n; ++i) {
+		pthread_mutex_lock(&lock);
+		add(&counter, -1);
+		pthread_mutex_unlock(&lock);
+	}
+}
+
+// spinlock synchronization
+void ssum(void *arg) {
+	int n = *(int *)arg;
+	for (int i = 0; i < n; ++i) {
+		while(__sync_lock_test_and_set(&lock_m, 1));
+		add(&counter, 1);
+		__sync_lock_release(&lock_m);
+	}
+	for (int i = 0; i < n; ++i) {
+		while(__sync_lock_test_and_set(&lock_m, 1));
+		add(&counter, -1);
+		__sync_lock_release(&lock_m);
+	}
+}
+
+void csum(void *arg) {
+	int n = *(int *)arg;
+	for (int i = 0; i < n; ++i) {
+		do {
+			add(&counter, 1);
+		} while(_sync_val_compare_and_swap(pointer, orig, sum)!= orig);
+	}
+	for (int i = 0; i < n; ++i) {
+		do {
+			add(&counter, -1);
+		} while(_sync_val_compare_and_swap(pointer, orig, sum)!= orig);
+	}
+}
+
 int main(int argc, char **argv) {
 	// Declare time structures for holding time
 	struct timespec start;
@@ -47,6 +97,7 @@ int main(int argc, char **argv) {
 		// Can be reset using command line options
 	int num_iter = 1;
 	int num_threads = 1;
+	char* sync = "n"
 	int operations;
 	int i; // iterator
 	int ret; // return value
@@ -63,7 +114,8 @@ int main(int argc, char **argv) {
     	// { "name",      has_arg,         *flag, val }
         {"threads",      optional_argument,  0,  't' }, 
         {"iterations",      optional_argument,  0,  'i' },
-        {"yield",      optional_argument,  0,  'y' },  
+        {"yield",      optional_argument,  0,  'y' }, 
+        {"sync",      optional_argument,  0,  's' }, 
         {0,             0,                  0,   0  } // error handling
     };
 
@@ -90,6 +142,22 @@ int main(int argc, char **argv) {
 	    		opt_yield = atoi(optarg);
 	    	break;
 
+	    case 's': // sync
+	    	if (optarg != NULL) {
+	    		switch(optarg) {
+	    			case "m": // pthread_mutex
+	    			case "s": // spinlock using __sync functions
+	    			case "c": // compare and swap
+	    				sync = optarg;
+	    				break;
+
+	    			default:
+	    				fprintf("ERROR: invalid sync option: %s\n", optarg);
+	    				exit(1);
+	    		}
+	    	}
+	    	break;
+
 	    case '?': // ? returns when doesn't recognize option character
 	    default:
 	      fprintf(stderr, "ERROR: getopt returned character code 0%o \n", c);
@@ -109,10 +177,38 @@ int main(int argc, char **argv) {
   pthread_t* threads = malloc(num_threads*sizeof(pthread_t));
 
   for (i = 0; i < num_threads; i++) {
-  	ret = pthread_create(&threads[i], NULL, (void *) &sum, (void *)&num_iter);
-  	if (ret != 0) {
-  		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
-  		exit(1);
+  	switch(sync) {
+  		case "n": // no synchronization
+  			ret = pthread_create(&threads[i], NULL, (void *) &sum, (void *)&num_iter);
+		  	if (ret != 0) {
+		  		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
+		  		exit(1);
+		  	}
+		  	break;
+
+  		case "m": // pthread_mutex
+  			ret = pthread_create(&threads[i], NULL, (void *) &msum, (void *)&num_iter);
+		  	if (ret != 0) {
+		  		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
+		  		exit(1);
+		  	}
+  			break;
+
+	    case "s": // spinlock using __sync functions
+	    	ret = pthread_create(&threads[i], NULL, (void *) &ssum, (void *)&num_iter);
+		  	if (ret != 0) {
+		  		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
+		  		exit(1);
+		  	}
+	    	break;
+
+	    case "c": // compare and swap
+	    	ret = pthread_create(&threads[i], NULL, (void *) &csum, (void *)&num_iter);
+		  	if (ret != 0) {
+		  		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
+		  		exit(1);
+		  	}
+	    	break;
   	}
   }
 
