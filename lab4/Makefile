@@ -1,22 +1,22 @@
 # Makefile for CS 111 Lab 4
 
 CC = gcc
-#CFLAGS =
-DISTDIR=lab1-cristen
+CFLAGS = -pthread
+DISTDIR=lab4-cristen
 default: addtest
 
 addtest: main.c 
-	$(CC) main.c -o $@
+	$(CC) $(CFLAGS) main.c -o $@
 
-dist: lab1-cristen.tar.gz
+dist: lab4-cristen.tar.gz
 
 submission_files = answers.txt main.c Makefile test.sh report.pdf
 
-lab1-cristen.tar.gz: $(submission_files)
+lab4-cristen.tar.gz: $(submission_files)
 	tar -czf $@ --transform='s,^,$(DISTDIR)/,' $(submission_files)  
 
 check: 
 	./test.sh
 
 clean:
-	rm -f *.o *.tar.gz simpsh
+	rm -f *.o *.tar.gz addtest

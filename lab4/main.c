@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
   }
 
   for (i = 0; i < num_threads; i++) {
-  	ret = pthread_join(&threads[i], NULL);
+  	ret = pthread_join(threads[i], NULL);
   	if (ret != 0) {
   		fprintf(stderr, "ERROR: joining threads: error code is %d\n", ret);
   		exit(1);
