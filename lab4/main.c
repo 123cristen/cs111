@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
 	    		num_iter = atoi(optarg);
 	    	break;
 	    
-	    ucase 'y': // yield
+	    case 'y': // yield
 	    	if (optarg != NULL)
 	    		opt_yield = atoi(optarg);
 	    	break;
