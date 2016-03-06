@@ -81,8 +81,8 @@ int main(int argc, char **argv) {
   								num_threads, num_iter, operations);
   if (counter != 0)
   	printf("ERROR: final count = %d\n", counter);
-  printf("elapsed time: ns\n", totalTime);
-  printf("per operation: %d ns", totalTime/operations);
+  printf("elapsed time: %lld ns\n", totalTime);
+  printf("per operation: %lld ns\n", totalTime/operations);
 
   exit(0);
 }
