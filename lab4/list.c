@@ -9,9 +9,9 @@
 
 #include "SortedList.h"
 
-struct SortedList_t list;
+SortedList_t list;
 char** randstrings; // array to hold addresses of random strings for each element
-struct SortedListElement_t* elements;
+SortedListElement_t* elements;
 
 void createElement(int index) {
 	// Generate random string of length from 1 to 10
@@ -33,15 +33,15 @@ void createElement(int index) {
 
 // Wrapper function for each thread to execute
 
-void listOps(void *arg) {
-	struct SortedListElement_t * l = (struct SortedListElement_t *)arg;
-	for (int i = 0; i < n; ++i) {
-		add(&counter, 1);
-	}
-	for (int i = 0; i < n; ++i) {
-		add(&counter, -1);
-	}
-}
+// void listOps(void *arg) {
+// 	SortedListElement_t * l = (SortedListElement_t *)arg;
+// 	for (int i = 0; i < n; ++i) {
+// 		add(&counter, 1);
+// 	}
+// 	for (int i = 0; i < n; ++i) {
+// 		add(&counter, -1);
+// 	}
+// }
 
 int main(int argc, char **argv) {
 	// Declare time structures for holding time
@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 	int ret; // return value
 
 	// Initialize the mutex lock
-	pthread_mutex_init(&lock, NULL);
+	//pthread_mutex_init(&lock, NULL);
 
 	if (clock_gettime(CLOCK_MONOTONIC, &start) != 0) {
 		fprintf(stderr, "ERROR: clock_gettime\n");
@@ -147,7 +147,7 @@ int main(int argc, char **argv) {
   	fprintf(stderr, "ERROR: unable to allocate memory\n");
 		exit(1);
   }
-  elements = malloc(num_elements*sizeof(struct SortedListElement_t));
+  elements = malloc(num_elements*sizeof(SortedListElement_t));
   if (elements == NULL) {
   	fprintf(stderr, "ERROR: unable to allocate memory\n");
 		exit(1);
@@ -155,11 +155,11 @@ int main(int argc, char **argv) {
 
   for (int i = 0; i < num_elements; i++) {
   	createElement(i);
-  	printf("e[k].key %s\n", element[k].key);
+  	printf("e[k].key %s\n", elements[i].key);
   }
 
   for (int k = 0; k < num_elements; k++) {
-  	SortedList_insert(&list, &element[k]);
+  	SortedList_insert(&list, &elements[k]);
   }
   char * x = list.next->key;
   printf("list.next.key: %s\n", x);
@@ -177,7 +177,7 @@ int main(int argc, char **argv) {
   	SortedList_delete(&element[k]);
   }
 
-  SortedListElement_t* e = SortedList_lookup(&list, x);
+  e = SortedList_lookup(&list, x);
   if (e != NULL) {
   	fprintf(stderr, "ERROR: delete failed\n");
   }
@@ -249,12 +249,12 @@ int main(int argc, char **argv) {
   
 
   // Print to stdout
-  printf("%d threads x %d iterations x (add + subtract) = %d operations\n", 
-  								num_threads, num_iter, operations);
-  if (counter != 0)
-  	fprintf(stderr, "ERROR: final count = %d\n", counter);
-  printf("elapsed time: %lld ns\n", totalTime);
-  printf("per operation: %lld ns\n", totalTime/operations);
+  // printf("%d threads x %d iterations x (add + subtract) = %d operations\n", 
+  // 								num_threads, num_iter, operations);
+  // if (counter != 0)
+  // 	fprintf(stderr, "ERROR: final count = %d\n", counter);
+  // printf("elapsed time: %lld ns\n", totalTime);
+  // printf("per operation: %lld ns\n", totalTime/operations);
 
   exit(0);
 }
