@@ -138,8 +138,8 @@ int main(int argc, char **argv) {
   }
   num_elements = num_threads*num_iter;
 
-  list.prev = list;
-  list.next = list;
+  list.prev = &list;
+  list.next = &list;
   list.key = NULL;
 
   randstrings = malloc(num_elements*sizeof(char *));
