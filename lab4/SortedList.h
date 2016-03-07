@@ -30,7 +30,20 @@ typedef struct SortedListElement SortedListElement_t;
  * Note: if (opt_yield & INSERT_YIELD)
  *		call pthread_yield in middle of critical section
  */
-void SortedList_insert(SortedList_t *list, SortedListElement_t *element);
+void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
+	SortedListElement_t * p = list;
+	SortedListElement_t * n = list->next;
+	while(n != list) { // condition will also fail if the list is empty, conveniently
+		if (strcmp(element->key, n->key) <= 0)
+			break;
+		p = n;
+		n = n->next;
+	}
+	element->prev = p;
+	element->next = n;
+	p->next = element;
+	n->prev = element;
+}
 
 /**
  * SortedList_delete ... remove an element from a sorted list
@@ -48,7 +61,19 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element);
  * Note: if (opt_yield & DELETE_YIELD)
  *		call pthread_yield in middle of critical section
  */
-int SortedList_delete( SortedListElement_t *element);
+int SortedList_delete( SortedListElement_t *element) {
+	SortedListElement_t * n = element->next;
+	SortedListElement_t * p = element->prev;
+	if (n->prev != element)
+		return 1;
+	if (p->next != element)
+		return 1;
+	n->prev = p;
+	p->next = n;
+	element->next = NULL;
+	element->prev = NULL;
+	return 0;
+}
 
 /**
  * SortedList_lookup ... search sorted list for a key
@@ -64,7 +89,15 @@ int SortedList_delete( SortedListElement_t *element);
  * Note: if (opt_yield & SEARCH_YIELD)
  *		call pthread_yield in middle of critical section
  */
-SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key);
+SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key) {
+	SortedListElement_t * n = list->next;
+	while(n != list) { // condition will also fail if the list is empty, conveniently
+		if (strcmp(key, n->key) == 0)
+			return n;
+		n = n->next;
+	}
+	return NULL;
+}
 
 /**
  * SortedList_length ... count elements in a sorted list
@@ -78,7 +111,15 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key);
  * Note: if (opt_yield & SEARCH_YIELD)
  *		call pthread_yield in middle of critical section
  */
-int SortedList_length(SortedList_t *list);
+int SortedList_length(SortedList_t *list) {
+	int length = 0;
+	SortedListElement_t * n = list->next;
+	while(n != list) { // condition will also fail if the list is empty, conveniently
+		length++;
+		n = n->next;
+	}
+	return length;
+}
 
 /**
  * variable to enable diagnositc calls to pthread_yield
