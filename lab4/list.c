@@ -13,6 +13,8 @@ SortedList_t list;
 char** randstrings; // array to hold addresses of random strings for each element
 SortedListElement_t* elements;
 
+int opt_yield;
+
 void createElement(int index) {
 	// Generate random string of length from 1 to 10
 	srand(time(NULL));
