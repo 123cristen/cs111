@@ -138,9 +138,9 @@ int main(int argc, char **argv) {
   }
   num_elements = num_threads*num_iter;
 
-  list->prev = list;
-  list->next = list;
-  list->key = NULL;
+  list.prev = list;
+  list.next = list;
+  list.key = NULL;
 
   randstrings = malloc(num_elements*sizeof(char *));
   if (randstrings == NULL) {
@@ -161,7 +161,8 @@ int main(int argc, char **argv) {
   for (int k = 0; k < num_elements; k++) {
   	SortedList_insert(&list, &elements[k]);
   }
-  char * x = list.next->key;
+  char * x;
+  strcpy(list.next->key, x);
   printf("list.next.key: %s\n", x);
   SortedListElement_t* e = SortedList_lookup(&list, x);
   if (e == NULL) {
@@ -174,7 +175,7 @@ int main(int argc, char **argv) {
   	fprintf(stderr, "ERROR: length failed");
 
   for (int k = 0; k < num_elements; k++) {
-  	SortedList_delete(&element[k]);
+  	SortedList_delete(&elements[k]);
   }
 
   e = SortedList_lookup(&list, x);
