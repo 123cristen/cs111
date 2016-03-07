@@ -163,10 +163,10 @@ int main(int argc, char **argv) {
   for (int k = 0; k < num_elements; k++) {
   	SortedList_insert(&list, &elements[k]);
   }
-  char * x;
-  strcpy(list.next->key, x);
-  printf("list.next.key: %s\n", x);
-  SortedListElement_t* e = SortedList_lookup(&list, x);
+  printf("insert success\n");
+
+  printf("list.next.key: %s\n", list.next->key);
+  SortedListElement_t* e = SortedList_lookup(&list, randstrings[0]);
   if (e == NULL) {
   	fprintf(stderr, "ERROR: lookup failed\n");
   	exit(1);
@@ -180,7 +180,7 @@ int main(int argc, char **argv) {
   	SortedList_delete(&elements[k]);
   }
 
-  e = SortedList_lookup(&list, x);
+  e = SortedList_lookup(&list, randstrings[0]);
   if (e != NULL) {
   	fprintf(stderr, "ERROR: delete failed\n");
   }
