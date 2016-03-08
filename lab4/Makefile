@@ -3,7 +3,7 @@
 CC = gcc
 CFLAGS = -pthread -lrt
 DISTDIR=lab4-cristen
-default: sltest 
+default: sltest addtest
 
 addtest: main.c 
 	$(CC) $(CFLAGS) main.c -o $@

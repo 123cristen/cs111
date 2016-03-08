@@ -1,4 +1,10 @@
-CS111 Lab 4
+CS111 Lab 4 
+Cristen Anderson <904400797>
+
+TODO: 
+Part 1 Graphs
+Part 2 Questions and Graphs
+Part 3 Question 5
 
 Part 1:
 
@@ -72,3 +78,82 @@ they implement busy waiting, where they take CPU resources while
 waiting for the lock. With large number of threads, more time will
 be spent waiting for a single lock, and thus more resources will
 be used.
+
+Part 2:
+
+QUESTION 2.1
+
+1) See Figure 2.1 in graphs.pdf
+From 1 to 100 iterations, the average time per operations goes
+down, because the thread overhead gets spread out over a larger
+number of operations. We could correct for this by getting the 
+clock time before and after pthread_create, multiplying by the 
+number of threads and then subtracting this from the total time. 
+Up from 100 iterations, the average time per operation increases 
+with increasing number of iterations. This is because with 
+increasing iterations, the size of the list grows, and insert 
+and lookup must potentially iterate through all of the nodes. 
+Therefore each insert and lookup instruction will take longer 
+when there are more iterations. We could correct for this effect
+by dividing the average time per operation by some value related
+to the size of the list.
+
+QUESTION 2.2
+
+1) 
+
+QUESTIONS 2.3
+
+1) 
+2)
+
+Part 3:
+
+QUESTION 3.1
+
+1) The mutex must be held when pthread_cond_wait is called because
+otherwise it is possible that the predicate condition will be
+modified in between checking it and calling pthread_cond_wait. 
+For example:
+while(!predicate) 
+	pthread_cond_wait(&condvar, &mutex)
+If predicate is modified to true in between checking the condition
+and calling pthread_cond_wait, then pthread_cond_wait will wait
+forever because it missed the signal that predicate was changed.
+We can prevent this by always having the mutex before calling
+pthread_cond_wait.
+
+2) The mutex must be released while the waiting thread is blocked
+in order to allow another thread to modify the predicate condition,
+since we are waiting for the predicate condition to change. Without
+releasing the mutex, the predicate condition would never change and
+there would be an infinite loop.
+
+3) The mutex must be reaquired when the calling process resumes so
+that the predicate condition remains the same for the code in the
+next section. 
+For example:
+while(!predicate) 
+	pthread_cond_wait(&condvar, &mutex)
+// do something
+In the do something section, we want to assume that the predicate
+is true. In order to do that, we must have the lock on the predicate
+to make sure no other threads modify it in between pthread_cond_wait
+returning and the do something section.
+
+4) This must be done inside pthread_cond_wait because otherwise
+there would be a race condition. If the user released the mutex
+before calling pthread_cond_wait:
+while(!predicate) {
+	pthread_mutex_unlock(&mutex);
+	pthread_cond_wait(&condvar, &mutex)
+}
+Then there is a chance that another thread could modify predicate
+in between pthread_mutex_unlock and pthread_cond_wait, which 
+would meet pthread_cond_wait would loop forever as mentioned in
+answer 1). 
+
+5) 
+
+
+
