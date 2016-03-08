@@ -12,8 +12,6 @@
 SortedList_t list;
 char** randstrings; // array to hold addresses of random strings for each element
 SortedListElement_t* elements;
-int num_threads;
-int num_elements;
 int num_iter;
 
 
@@ -43,7 +41,7 @@ void listOps(void *arg) {
 	//fprintf(stderr, "enter listOps\n");
 	int i = *(int *)arg;
 	fprintf(stderr, "i: %d\n", i);
-	free((int*)arg);
+	free(arg);
 	SortedListElement_t* e;
 	int ret;
 	fprintf(stderr, "free arg pointer\n");
@@ -79,8 +77,9 @@ int main(int argc, char **argv) {
 
 	// Number of iterations and threads
 		// Can be reset using command line options
+	int num_threads = 1;
+	int num_elements;
 	num_iter = 1;
-	num_threads = 1;
 	char sync = 'n';
 	int operations;
 
@@ -210,13 +209,14 @@ int main(int argc, char **argv) {
 
 
   pthread_t* threads = malloc(num_threads*sizeof(pthread_t));
+  if (threads == NULL) { fprintf(stderr, "ERROR: malloc error\n"); exit(1); }
 
   for (i = 0; i < num_threads; i++) {
+  	int* arg = (int*)malloc(sizeof(int));
+		if (arg == NULL) { fprintf(stderr, "ERROR: malloc error\n"); exit(1); }
+		*arg = i;
+
   	switch(sync) {
-  		int* arg = (int*)malloc(sizeof(int));
-  		if (arg == NULL) { fprintf(stderr, "ERROR: malloc error\n"); exit(1); }
-  		*arg = i;
-  		printf("arg: %d, i: %d\n", *arg, i);
 
   		case 'n': // no synchronization
   			ret = pthread_create(&threads[i], NULL, (void *) &listOps, (void *)arg);
