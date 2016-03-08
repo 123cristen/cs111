@@ -54,6 +54,7 @@ void listOps(void *arg) {
   fprintf(stderr, "got length\n");
   for (int j = i; j < i+num_iter; j++) {
   	e = SortedList_lookup(&list, randstrings[j]);
+  	fprintf(stderr, "lookup %d\n", j);
   	if (e == NULL) {
   		fprintf(stderr, "ERROR: couldn't find added element\n");
   		exit(1);
