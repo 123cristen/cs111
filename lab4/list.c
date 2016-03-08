@@ -48,13 +48,11 @@ void listOps(void *arg) {
 
 	
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
-		printf("begin insert: i: %d j: %d\n", i, j);
   	SortedList_insert(&list, &elements[j]);
-  	printf("end insert: i: %d j: %d\n", i, j);
   }
   	
   int length = SortedList_length(&list);
-  printf("begin lookup/delete\n");
+  
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	e = SortedList_lookup(&list, randstrings[j]);
   	if (e == NULL) {
@@ -67,7 +65,6 @@ void listOps(void *arg) {
   		exit(1);
   	}
   }
-  printf("end lookup/delete\n");
 }
 
 void mlistOps(void *arg) {
