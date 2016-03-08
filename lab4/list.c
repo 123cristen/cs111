@@ -53,6 +53,10 @@ void listOps(void *arg) {
   int length = SortedList_length(&list);
   fprintf(stderr, "got length\n");
   for (int j = i; j < i+num_iter; j++) {
+  	if (randstrings[j] == NULL) {
+  		fprintf(stderr, "randstrings[%d] is null\n", j);
+  		exit(1);
+  	}
   	e = SortedList_lookup(&list, randstrings[j]);
   	fprintf(stderr, "lookup %d\n", j);
   	if (e == NULL) {
@@ -178,10 +182,10 @@ int main(int argc, char **argv) {
 		exit(1);
   }
 
-  // for (int i = 0; i < num_elements; i++) {
-  // 	createElement(i);
-  // 	printf("e[k].key %s\n", elements[i].key);
-  // }
+  for (int i = 0; i < num_elements; i++) {
+  	createElement(i);
+  	printf("e[k].key %s\n", elements[i].key);
+  }
 
   // for (int k = 0; k < num_elements; k++) {
   // 	SortedList_insert(&list, &elements[k]);
