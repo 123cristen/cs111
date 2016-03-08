@@ -42,7 +42,7 @@ void createElement(int index) {
 void listOps(void *arg) {
 	int i = *(int *)arg;
 	free(arg);
-	SortedListElement_t e;
+	SortedListElement_t* e;
 	int ret;
 
   for (int j = i; j < i+num_iter; j++) {
@@ -50,7 +50,7 @@ void listOps(void *arg) {
   }
   int length = SortedList_length(&list);
   for (int j = i; j < i+num_iter; j++) {
-  	e = SortedList_lookup(&list, &randstrings[j]);
+  	e = SortedList_lookup(&list, randstrings[j]);
   	if (e == NULL) {
   		fprintf(stderr, "ERROR: couldn't find added element\n");
   		exit(1);
@@ -208,7 +208,7 @@ int main(int argc, char **argv) {
   for (i = 0; i < num_threads; i++) {
   	switch(sync) {
   		int* arg = malloc(sizeof(int));
-  		if (arg == NULL) { fprintf("ERROR: malloc error\n"); exit(1); }
+  		if (arg == NULL) { fprintf(stderr, "ERROR: malloc error\n"); exit(1); }
   		*arg = i;
 
   		case 'n': // no synchronization
