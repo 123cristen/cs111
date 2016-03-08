@@ -39,8 +39,8 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
 		p = n;
 		n = n->next;
 	}
-	if ((optyield & INSERT_YIELD) && !(opt_yield & SEARCH_YIELD))
-		pthread_yield();
+	// if ((optyield & INSERT_YIELD) && !(opt_yield & SEARCH_YIELD))
+	// 	pthread_yield();
 	element->prev = p;
 	element->next = n;
 	p->next = element;
@@ -66,8 +66,8 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
 int SortedList_delete( SortedListElement_t *element) {
 	SortedListElement_t * n = element->next;
 	SortedListElement_t * p = element->prev;
-	if ((optyield & DELETE_YIELD) && !(opt_yield & SEARCH_YIELD))
-		pthread_yield();
+	// if ((optyield & DELETE_YIELD) && !(opt_yield & SEARCH_YIELD))
+	// 	pthread_yield();
 
 	if (n->prev != element)
 		return 1;

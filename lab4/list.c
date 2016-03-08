@@ -190,11 +190,11 @@ int main(int argc, char **argv) {
     				exit(1);
     			}
     			for (int j = 0; j < strlen(optarg); j++) {
-    				if (optarg[j] == "i")
+    				if (optarg[j] == 'i')
     					opt_yield |= INSERT_YIELD;
-    				else if (optarg[j]) == "d")
+    				else if (optarg[j] == 'd')
 							opt_yield |= DELETE_YIELD;
-						else if (optarg[j]) == "s")
+						else if (optarg[j] == 's')
 							opt_yield |= SEARCH_YIELD;
 						else {
 							fprintf(stderr, "ERROR: invalid yield option: %s\n", optarg);
