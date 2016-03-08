@@ -12,13 +12,17 @@
 SortedList_t list;
 char** randstrings; // array to hold addresses of random strings for each element
 SortedListElement_t* elements;
+int num_threads;
+int num_elements;
+int num_iter;
+
 
 int opt_yield;
 
 void createElement(int index) {
-	// Generate random string of length from 1 to 10
+	// Generate random string of length from 1 to 100
 	srand(time(NULL));
-	int string_length = rand()%11+1;
+	int string_length = rand()%101+1;
 	randstrings[index] = malloc(string_length*sizeof(char));
 	if (randstrings[index] == NULL) {
 		fprintf(stderr, "ERROR: unable to allocate memory\n");
@@ -35,15 +39,29 @@ void createElement(int index) {
 
 // Wrapper function for each thread to execute
 
-// void listOps(void *arg) {
-// 	SortedListElement_t * l = (SortedListElement_t *)arg;
-// 	for (int i = 0; i < n; ++i) {
-// 		add(&counter, 1);
-// 	}
-// 	for (int i = 0; i < n; ++i) {
-// 		add(&counter, -1);
-// 	}
-// }
+void listOps(void *arg) {
+	int i = *(int *)arg;
+	free(arg);
+	SortedListElement_t e;
+	int ret;
+
+  for (int j = i; j < i+num_iter; j++) {
+  	SortedList_insert(&list, &elements[j]);
+  }
+  int length = SortedList_length(&list);
+  for (int j = i; j < i+num_iter; j++) {
+  	e = SortedList_lookup(&list, &randstrings[j]);
+  	if (e == NULL) {
+  		fprintf(stderr, "ERROR: couldn't find added element\n");
+  		exit(1);
+  	}
+  	ret = SortedList_delete(e);
+  	if (ret != 0) {
+  		fprintf(stderr, "ERROR: corrupt pointers for delete\n");
+  		exit(1);
+  	}
+  }
+}
 
 int main(int argc, char **argv) {
 	// Declare time structures for holding time
@@ -55,11 +73,10 @@ int main(int argc, char **argv) {
 
 	// Number of iterations and threads
 		// Can be reset using command line options
-	int num_iter = 1;
-	int num_threads = 1;
+	num_iter = 1;
+	num_threads = 1;
 	char sync = 'n';
 	int operations;
-	int num_elements;
 
 	int i; // iterator
 	int ret; // return value
@@ -188,50 +205,53 @@ int main(int argc, char **argv) {
 
   pthread_t* threads = malloc(num_threads*sizeof(pthread_t));
 
-  // for (i = 0; i < num_threads; i++) {
-  // 	switch(sync) {
+  for (i = 0; i < num_threads; i++) {
+  	switch(sync) {
+  		int* arg = malloc(sizeof(int));
+  		if (arg == NULL) { fprintf("ERROR: malloc error\n"); exit(1); }
+  		*arg = i;
 
-  // 		case 'n': // no synchronization
-  // 			ret = pthread_create(&threads[i], NULL, (void *) &sum, (void *)&num_iter);
-		//   	if (ret != 0) {
-		//   		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
-		//   		exit(1);
-		//   	}
-		//   	break;
+  		case 'n': // no synchronization
+  			ret = pthread_create(&threads[i], NULL, (void *) &listOps, (void *)arg);
+		  	if (ret != 0) {
+		  		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
+		  		exit(1);
+		  	}
+		  	break;
 
-  // 		case 'm': // pthread_mutex
-  // 			ret = pthread_create(&threads[i], NULL, (void *) &msum, (void *)&num_iter);
-		//   	if (ret != 0) {
-		//   		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
-		//   		exit(1);
-		//   	}
-  // 			break;
+  		case 'm': // pthread_mutex
+  			// ret = pthread_create(&threads[i], NULL, (void *) &msum, (void *)arg);
+		  	// if (ret != 0) {
+		  	// 	fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
+		  	// 	exit(1);
+		  	// }
+  			// break;
 
-	 //    case 's': // spinlock using __sync functions
-	 //    	ret = pthread_create(&threads[i], NULL, (void *) &ssum, (void *)&num_iter);
-		//   	if (ret != 0) {
-		//   		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
-		//   		exit(1);
-		//   	}
-	 //    	break;
+	    case 's': // spinlock using __sync functions
+	    // 	ret = pthread_create(&threads[i], NULL, (void *) &ssum, (void *)arg);
+		  	// if (ret != 0) {
+		  	// 	fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
+		  	// 	exit(1);
+		  	// }
+	    // 	break;
 
-	 //    case 'c': // compare and swap
-	 //    	ret = pthread_create(&threads[i], NULL, (void *) &csum, (void *)&num_iter);
-		//   	if (ret != 0) {
-		//   		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
-		//   		exit(1);
-		//   	}
-	 //    	break;
-  // 	}
-  // }
+	    case 'c': // compare and swap
+	    // 	ret = pthread_create(&threads[i], NULL, (void *) &csum, (void *)arg);
+		  	// if (ret != 0) {
+		  	// 	fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
+		  	// 	exit(1);
+		  	// }
+	    	break;
+  	}
+  }
 
-  // for (i = 0; i < num_threads; i++) {
-  // 	ret = pthread_join(threads[i], NULL);
-  // 	if (ret != 0) {
-  // 		fprintf(stderr, "ERROR: joining threads: error code is %d\n", ret);
-  // 		exit(1);
-  // 	}
-  // }
+  for (i = 0; i < num_threads; i++) {
+  	ret = pthread_join(threads[i], NULL);
+  	if (ret != 0) {
+  		fprintf(stderr, "ERROR: joining threads: error code is %d\n", ret);
+  		exit(1);
+  	}
+  }
 
   // Find end time for clock
   if (clock_gettime(CLOCK_MONOTONIC, &end) != 0) {
@@ -248,16 +268,17 @@ int main(int argc, char **argv) {
   endTime = (long long)(end.tv_sec*pow(10, 9) + end.tv_nsec);
   startTime = (long long) (start.tv_sec*pow(10, 9) + start.tv_nsec);
   totalTime = endTime-startTime;
-  operations = num_threads*num_iter*2;
+  operations = num_threads*num_iter*50*2;
+  int finalLength = SortedList_length(&list);
   
 
   // Print to stdout
-  // printf("%d threads x %d iterations x (add + subtract) = %d operations\n", 
-  // 								num_threads, num_iter, operations);
-  // if (counter != 0)
-  // 	fprintf(stderr, "ERROR: final count = %d\n", counter);
-  // printf("elapsed time: %lld ns\n", totalTime);
-  // printf("per operation: %lld ns\n", totalTime/operations);
+  printf("%d threads x %d iterations x (insert + lookup/delete) x (100/2 avg len) = %d operations\n", 
+  								num_threads, num_iter, operations);
+  if (finalLength != 0)
+  	fprintf(stderr, "ERROR: final length = %d\n", finalLength);
+  printf("elapsed time: %lld ns\n", totalTime);
+  printf("per operation: %lld ns\n", totalTime/operations);
 
   exit(0);
 }
