@@ -39,25 +39,17 @@ void createElement(int index) {
 void listOps(void *arg) {
 	//fprintf(stderr, "enter listOps\n");
 	int i = *(int *)arg;
-	fprintf(stderr, "i: %d\n", i);
 	free(arg);
 	SortedListElement_t* e;
 	int ret;
-	fprintf(stderr, "free arg pointer\n");
+
+  for (int j = i; j < i+num_iter; j++) 
+  	SortedList_insert(&list, &elements[j]);
+
+  int length = SortedList_length(&list);
 
   for (int j = i; j < i+num_iter; j++) {
-  	SortedList_insert(&list, &elements[j]);
-  }
-  fprintf(stderr, "finished insert\n");
-  int length = SortedList_length(&list);
-  fprintf(stderr, "got length\n");
-  for (int j = i; j < i+num_iter; j++) {
-  	if (randstrings[j] == NULL) {
-  		fprintf(stderr, "randstrings[%d] is null\n", j);
-  		exit(1);
-  	}
   	e = SortedList_lookup(&list, randstrings[j]);
-  	fprintf(stderr, "lookup %d\n", j);
   	if (e == NULL) {
   		fprintf(stderr, "ERROR: couldn't find added element\n");
   		exit(1);
@@ -68,7 +60,6 @@ void listOps(void *arg) {
   		exit(1);
   	}
   }
-  fprintf(stderr, "finished lookup & delete\n");
 }
 
 int main(int argc, char **argv) {
@@ -92,11 +83,6 @@ int main(int argc, char **argv) {
 
 	// Initialize the mutex lock
 	//pthread_mutex_init(&lock, NULL);
-
-	if (clock_gettime(CLOCK_MONOTONIC, &start) != 0) {
-		fprintf(stderr, "ERROR: clock_gettime\n");
-		exit(1);
-	}
 
   // Parse and handle options
   while (1) {
@@ -164,6 +150,8 @@ int main(int argc, char **argv) {
   	fprintf(stderr, "ERROR: number of iterations must be positive\n");
   	exit(1);
   }
+
+  // Create and initialize list & elements
   num_elements = num_threads*num_iter;
 
   list.prev = &list;
@@ -187,34 +175,14 @@ int main(int argc, char **argv) {
   	printf("e[%d].key %s\n", i, elements[i].key);
   }
 
-  // for (int k = 0; k < num_elements; k++) {
-  // 	SortedList_insert(&list, &elements[k]);
-  // }
-  // printf("insert success\n");
-
-  // printf("list.next.key: %s\n", list.next->key);
-  // SortedListElement_t* e = SortedList_lookup(&list, randstrings[0]);
-  // if (e == NULL) {
-  // 	fprintf(stderr, "ERROR: lookup failed\n");
-  // 	exit(1);
-  // }
-  // printf("lookup key: %s\n", e->key);
-
-  // if (SortedList_length(&list) != num_elements)
-  // 	fprintf(stderr, "ERROR: length failed");
-
-  // for (int k = 0; k < num_elements; k++) {
-  // 	SortedList_delete(&elements[k]);
-  // }
-
-  // e = SortedList_lookup(&list, randstrings[0]);
-  // if (e != NULL) {
-  // 	fprintf(stderr, "ERROR: delete failed\n");
-  // }
-
-
+  // Start threads
   pthread_t* threads = malloc(num_threads*sizeof(pthread_t));
   if (threads == NULL) { fprintf(stderr, "ERROR: malloc error\n"); exit(1); }
+
+  if (clock_gettime(CLOCK_MONOTONIC, &start) != 0) {
+		fprintf(stderr, "ERROR: clock_gettime\n");
+		exit(1);
+	}
 
   for (i = 0; i < num_threads; i++) {
   	int* arg = (int*)malloc(sizeof(int));
