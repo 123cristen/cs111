@@ -170,10 +170,8 @@ int main(int argc, char **argv) {
   }
 
   srand(time(NULL));
-  for (int i = 0; i < num_elements; i++) {
+  for (int i = 0; i < num_elements; i++)
   	createElement(i);
-  	printf("e[%d].key %s\n", i, elements[i].key);
-  }
 
   // Start threads
   pthread_t* threads = malloc(num_threads*sizeof(pthread_t));
