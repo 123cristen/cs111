@@ -19,7 +19,6 @@ int opt_yield;
 
 void createElement(int index) {
 	// Generate random string of length from 1 to 100
-	srand(time(NULL));
 	int string_length = rand()%101+1;
 	randstrings[index] = malloc(string_length*sizeof(char));
 	if (randstrings[index] == NULL) {
@@ -182,9 +181,10 @@ int main(int argc, char **argv) {
 		exit(1);
   }
 
+  srand(time(NULL));
   for (int i = 0; i < num_elements; i++) {
   	createElement(i);
-  	printf("e[k].key %s\n", elements[i].key);
+  	printf("e[%d].key %s\n", i, elements[i].key);
   }
 
   // for (int k = 0; k < num_elements; k++) {
