@@ -40,8 +40,9 @@ void createElement(int index) {
 // Wrapper function for each thread to execute
 
 void listOps(void *arg) {
-	fprintf(stderr, "enter listOps\n");
+	//fprintf(stderr, "enter listOps\n");
 	int i = *(int *)arg;
+	fprintf(stderr, "%s\n", );
 	free(arg);
 	SortedListElement_t* e;
 	int ret;
@@ -212,9 +213,10 @@ int main(int argc, char **argv) {
 
   for (i = 0; i < num_threads; i++) {
   	switch(sync) {
-  		int* arg = malloc(sizeof(int));
+  		int* arg = (int*)malloc(sizeof(int));
   		if (arg == NULL) { fprintf(stderr, "ERROR: malloc error\n"); exit(1); }
   		*arg = i;
+  		printf("arg: %d, i: %d\n", *arg, i);
 
   		case 'n': // no synchronization
   			ret = pthread_create(&threads[i], NULL, (void *) &listOps, (void *)arg);
