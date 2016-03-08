@@ -47,7 +47,7 @@ void listOps(void *arg) {
 	int ret;
 
 	
-  for (int j = i; j < i+num_iter; j++) {
+  for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
 		printf("begin insert: i: %d j: %d\n", i, j);
   	SortedList_insert(&list, &elements[j]);
   	printf("end insert: i: %d j: %d\n", i, j);
@@ -55,7 +55,7 @@ void listOps(void *arg) {
   	
   int length = SortedList_length(&list);
   printf("begin lookup/delete\n");
-  for (int j = i; j < i+num_iter; j++) {
+  for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	e = SortedList_lookup(&list, randstrings[j]);
   	if (e == NULL) {
   		fprintf(stderr, "ERROR: couldn't find added element\n");
@@ -77,7 +77,7 @@ void mlistOps(void *arg) {
 	SortedListElement_t* e;
 	int ret;
 
-  for (int j = i; j < i+num_iter; j++) {
+  for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	pthread_mutex_lock(&lock);
   	SortedList_insert(&list, &elements[j]);
   	pthread_mutex_unlock(&lock);
@@ -87,7 +87,7 @@ void mlistOps(void *arg) {
   int length = SortedList_length(&list);
   pthread_mutex_unlock(&lock);
 
-  for (int j = i; j < i+num_iter; j++) {
+  for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	pthread_mutex_lock(&lock);
   	e = SortedList_lookup(&list, randstrings[j]);
   	if (e == NULL) {
@@ -110,7 +110,7 @@ void slistOps(void *arg) {
 	SortedListElement_t* e;
 	int ret;
 
-  for (int j = i; j < i+num_iter; j++) {
+  for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	while(__sync_lock_test_and_set(&lock_m, 1));
   	SortedList_insert(&list, &elements[j]);
   	__sync_lock_release(&lock_m);
@@ -120,7 +120,7 @@ void slistOps(void *arg) {
   int length = SortedList_length(&list);
   __sync_lock_release(&lock_m);
 
-  for (int j = i; j < i+num_iter; j++) {
+  for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	while(__sync_lock_test_and_set(&lock_m, 1));
   	e = SortedList_lookup(&list, randstrings[j]);
   	if (e == NULL) {
