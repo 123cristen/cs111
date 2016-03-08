@@ -46,10 +46,13 @@ void listOps(void *arg) {
 	SortedListElement_t* e;
 	int ret;
 
-	printf("begin insert\n");
-  for (int j = i; j < i+num_iter; j++) 
+	
+  for (int j = i; j < i+num_iter; j++) {
+		printf("begin insert: i: %d j: %d\n", i, j);
   	SortedList_insert(&list, &elements[j]);
-  printf("end insert\n");
+  	printf("end insert: i: %d j: %d\n", i, j);
+  }
+  	
   int length = SortedList_length(&list);
   printf("begin lookup/delete\n");
   for (int j = i; j < i+num_iter; j++) {
