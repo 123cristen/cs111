@@ -45,6 +45,7 @@ void listOps(void *arg) {
 	free(arg);
 	SortedListElement_t* e;
 	int ret;
+	fprintf(stderr, "free arg pointer\n");
 
   for (int j = i; j < i+num_iter; j++) {
   	SortedList_insert(&list, &elements[j]);
