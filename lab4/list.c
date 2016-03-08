@@ -40,6 +40,7 @@ void createElement(int index) {
 // Wrapper function for each thread to execute
 
 void listOps(void *arg) {
+	fprintf(stderr, "enter listOps\n");
 	int i = *(int *)arg;
 	free(arg);
 	SortedListElement_t* e;
@@ -48,7 +49,9 @@ void listOps(void *arg) {
   for (int j = i; j < i+num_iter; j++) {
   	SortedList_insert(&list, &elements[j]);
   }
+  fprintf(stderr, "finished insert\n");
   int length = SortedList_length(&list);
+  fprintf(stderr, "got length\n");
   for (int j = i; j < i+num_iter; j++) {
   	e = SortedList_lookup(&list, randstrings[j]);
   	if (e == NULL) {
@@ -61,6 +64,7 @@ void listOps(void *arg) {
   		exit(1);
   	}
   }
+  fprintf(stderr, "finished lookup & delete\n");
 }
 
 int main(int argc, char **argv) {
@@ -172,35 +176,35 @@ int main(int argc, char **argv) {
 		exit(1);
   }
 
-  for (int i = 0; i < num_elements; i++) {
-  	createElement(i);
-  	printf("e[k].key %s\n", elements[i].key);
-  }
+  // for (int i = 0; i < num_elements; i++) {
+  // 	createElement(i);
+  // 	printf("e[k].key %s\n", elements[i].key);
+  // }
 
-  for (int k = 0; k < num_elements; k++) {
-  	SortedList_insert(&list, &elements[k]);
-  }
-  printf("insert success\n");
+  // for (int k = 0; k < num_elements; k++) {
+  // 	SortedList_insert(&list, &elements[k]);
+  // }
+  // printf("insert success\n");
 
-  printf("list.next.key: %s\n", list.next->key);
-  SortedListElement_t* e = SortedList_lookup(&list, randstrings[0]);
-  if (e == NULL) {
-  	fprintf(stderr, "ERROR: lookup failed\n");
-  	exit(1);
-  }
-  printf("lookup key: %s\n", e->key);
+  // printf("list.next.key: %s\n", list.next->key);
+  // SortedListElement_t* e = SortedList_lookup(&list, randstrings[0]);
+  // if (e == NULL) {
+  // 	fprintf(stderr, "ERROR: lookup failed\n");
+  // 	exit(1);
+  // }
+  // printf("lookup key: %s\n", e->key);
 
-  if (SortedList_length(&list) != num_elements)
-  	fprintf(stderr, "ERROR: length failed");
+  // if (SortedList_length(&list) != num_elements)
+  // 	fprintf(stderr, "ERROR: length failed");
 
-  for (int k = 0; k < num_elements; k++) {
-  	SortedList_delete(&elements[k]);
-  }
+  // for (int k = 0; k < num_elements; k++) {
+  // 	SortedList_delete(&elements[k]);
+  // }
 
-  e = SortedList_lookup(&list, randstrings[0]);
-  if (e != NULL) {
-  	fprintf(stderr, "ERROR: delete failed\n");
-  }
+  // e = SortedList_lookup(&list, randstrings[0]);
+  // if (e != NULL) {
+  // 	fprintf(stderr, "ERROR: delete failed\n");
+  // }
 
 
   pthread_t* threads = malloc(num_threads*sizeof(pthread_t));
