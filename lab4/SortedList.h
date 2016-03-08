@@ -36,11 +36,11 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
 	while(n != list) { // condition will also fail if the list is empty, conveniently
 		if (strcmp(element->key, n->key) <= 0)
 			break;
-		p = n;
 		n = n->next;
 	}
 	// if ((optyield & INSERT_YIELD) && !(opt_yield & SEARCH_YIELD))
 	// 	pthread_yield();
+	p = n->prev;
 	element->prev = p;
 	element->next = n;
 	p->next = element;
