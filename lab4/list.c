@@ -13,6 +13,9 @@ SortedList_t list;
 char** randstrings; // array to hold addresses of random strings for each element
 SortedListElement_t* elements;
 int num_iter;
+static pthread_mutex_t lock;
+// spinlock
+volatile static int lock_m = 0;
 
 
 int opt_yield;
@@ -62,6 +65,72 @@ void listOps(void *arg) {
   }
 }
 
+void mlistOps(void *arg) {
+	//fprintf(stderr, "enter listOps\n");
+	int i = *(int *)arg;
+	free(arg);
+	SortedListElement_t* e;
+	int ret;
+
+  for (int j = i; j < i+num_iter; j++) {
+  	pthread_mutex_lock(&lock);
+  	SortedList_insert(&list, &elements[j]);
+  	pthread_mutex_unlock(&lock);
+  }
+
+  pthread_mutex_lock(&lock);
+  int length = SortedList_length(&list);
+  pthread_mutex_unlock(&lock);
+
+  for (int j = i; j < i+num_iter; j++) {
+  	pthread_mutex_lock(&lock);
+  	e = SortedList_lookup(&list, randstrings[j]);
+  	if (e == NULL) {
+  		fprintf(stderr, "ERROR: couldn't find added element\n");
+  		exit(1);
+  	}
+  	ret = SortedList_delete(e);
+  	if (ret != 0) {
+  		fprintf(stderr, "ERROR: corrupt pointers for delete\n");
+  		exit(1);
+  	}
+  	pthread_mutex_unlock(&lock);
+  }
+}
+
+void slistOps(void *arg) {
+	//fprintf(stderr, "enter listOps\n");
+	int i = *(int *)arg;
+	free(arg);
+	SortedListElement_t* e;
+	int ret;
+
+  for (int j = i; j < i+num_iter; j++) {
+  	while(__sync_lock_test_and_set(&lock_m, 1));
+  	SortedList_insert(&list, &elements[j]);
+  	__sync_lock_release(&lock_m);
+  }
+  	
+  while(__sync_lock_test_and_set(&lock_m, 1));
+  int length = SortedList_length(&list);
+  __sync_lock_release(&lock_m);
+
+  for (int j = i; j < i+num_iter; j++) {
+  	while(__sync_lock_test_and_set(&lock_m, 1));
+  	e = SortedList_lookup(&list, randstrings[j]);
+  	if (e == NULL) {
+  		fprintf(stderr, "ERROR: couldn't find added element\n");
+  		exit(1);
+  	}
+  	ret = SortedList_delete(e);
+  	if (ret != 0) {
+  		fprintf(stderr, "ERROR: corrupt pointers for delete\n");
+  		exit(1);
+  	}
+  	__sync_lock_release(&lock_m);
+  }
+}
+
 int main(int argc, char **argv) {
 	// Declare time structures for holding time
 	struct timespec start;
@@ -82,7 +151,7 @@ int main(int argc, char **argv) {
 	int ret; // return value
 
 	// Initialize the mutex lock
-	//pthread_mutex_init(&lock, NULL);
+	pthread_mutex_init(&lock, NULL);
 
   // Parse and handle options
   while (1) {
@@ -115,18 +184,29 @@ int main(int argc, char **argv) {
 	    	break;
 	    
 	    case 'y': // yield
-	    	if (optarg != NULL)
-	    		if (!strcmp(optarg, "i") && !strcmp(optarg, "d") && !strcmp(optarg, "s")) {
-	    			fprintf(stderr, "ERROR: invalid yield option: %s\n", optarg);
-	    			exit(1);
-	    		}
-	    		else 
-	    			opt_yield = optarg[0];
+	    	if (optarg != NULL) {
+    			if (strlen(optarg) > 3) {
+    				fprintf(stderr, "ERROR: invalid yield option: %s\n", optarg);
+    				exit(1);
+    			}
+    			for (int j = 0; j < strlen(optarg); j++) {
+    				if (optarg[j] == "i")
+    					opt_yield |= INSERT_YIELD;
+    				else if (optarg[j]) == "d")
+							opt_yield |= DELETE_YIELD;
+						else if (optarg[j]) == "s")
+							opt_yield |= SEARCH_YIELD;
+						else {
+							fprintf(stderr, "ERROR: invalid yield option: %s\n", optarg);
+    					exit(1);
+						}
+    			}
+    		}
 	    	break;
 
 	    case 's': // sync
 	    	if (optarg != NULL) {
-	    		if (!strcmp(optarg, "m") && !strcmp(optarg, "s") && !strcmp(optarg, "c")) {
+	    		if (!strcmp(optarg, "m") && !strcmp(optarg, "s")) {
 	    			fprintf(stderr, "ERROR: invalid sync option: %s\n", optarg);
 	    			exit(1);
 	    		}
@@ -198,27 +278,19 @@ int main(int argc, char **argv) {
 		  	break;
 
   		case 'm': // pthread_mutex
-  			// ret = pthread_create(&threads[i], NULL, (void *) &msum, (void *)arg);
-		  	// if (ret != 0) {
-		  	// 	fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
-		  	// 	exit(1);
-		  	// }
-  			// break;
+  			ret = pthread_create(&threads[i], NULL, (void *) &mlistOps, (void *)arg);
+		  	if (ret != 0) {
+		  		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
+		  		exit(1);
+		  	}
+  			break;
 
 	    case 's': // spinlock using __sync functions
-	    // 	ret = pthread_create(&threads[i], NULL, (void *) &ssum, (void *)arg);
-		  	// if (ret != 0) {
-		  	// 	fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
-		  	// 	exit(1);
-		  	// }
-	    // 	break;
-
-	    case 'c': // compare and swap
-	    // 	ret = pthread_create(&threads[i], NULL, (void *) &csum, (void *)arg);
-		  	// if (ret != 0) {
-		  	// 	fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
-		  	// 	exit(1);
-		  	// }
+	    	ret = pthread_create(&threads[i], NULL, (void *) &slistOps, (void *)arg);
+		  	if (ret != 0) {
+		  		fprintf(stderr, "ERROR: thread creation: error code is %d\n", ret);
+		  		exit(1);
+		  	}
 	    	break;
   	}
   }
