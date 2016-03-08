@@ -42,8 +42,8 @@ void createElement(int index) {
 void listOps(void *arg) {
 	//fprintf(stderr, "enter listOps\n");
 	int i = *(int *)arg;
-	fprintf(stderr, "%s\n", );
-	free(arg);
+	fprintf(stderr, "i: %d\n", i);
+	free((int*)arg);
 	SortedListElement_t* e;
 	int ret;
 	fprintf(stderr, "free arg pointer\n");
