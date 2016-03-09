@@ -60,6 +60,7 @@ void listOps(void *arg) {
   	int index = hash(elements[j].key);
   	printf("index: %d, elements[%d].key: %s\n", index, j, elements[j].key);
   	SortedList_t list = lists[index];
+  	printf("lists[%d].key: %s\n", index, lists[index].key);
   	SortedList_insert(&list, &elements[j]);
   }
   printf("Before length\n");
