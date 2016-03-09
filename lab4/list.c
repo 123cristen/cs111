@@ -280,11 +280,12 @@ int main(int argc, char **argv) {
   	fprintf(stderr, "ERROR: unable to allocate memory\n");
 		exit(1);
   }
+  printf("num_sublists = %d\n", num_sublists);
   for (int k = 0; k < num_sublists; k++) {
-  	SortedList_t list = lists[k];
-  	list.prev = &list;
-  	list.next = &list;
-  	list.key = NULL;
+  	printf("inside assignment loop\n");
+  	lists[k].prev = &lists[k];
+  	lists[k].next = &lists[k];
+  	lists[k].key = NULL;
   }
 
   if (lists[0].next != &lists[0]) {
