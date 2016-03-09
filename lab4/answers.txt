@@ -2,8 +2,8 @@ CS111 Lab 4
 Cristen Anderson <904400797>
 
 TODO: 
-Part 1 Graphs
-Part 2 Questions and Graphs
+Part 2 Questions 2.2, 2.3 and Graphs
+sublist code
 Part 3 Question 5
 
 Part 1:

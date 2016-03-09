@@ -9,14 +9,14 @@
 
 #include "SortedList.h"
 
-SortedList_t list;
+SortedList_t* lists;
 char** randstrings; // array to hold addresses of random strings for each element
 SortedListElement_t* elements;
 int num_iter;
-static pthread_mutex_t lock;
+int num_sublists;
+static pthread_mutex_t * locks;
 // spinlock
-volatile static int lock_m = 0;
-
+volatile static int * lock_ms;
 
 int opt_yield;
 
@@ -46,14 +46,15 @@ void listOps(void *arg) {
 	SortedListElement_t* e;
 	int ret;
 
-	
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
+  	SortedList_t list = lists[hash(elements[j].key)];
   	SortedList_insert(&list, &elements[j]);
   }
   	
-  int length = SortedList_length(&list);
+  int length = SortedList_length(lists);
   
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
+  	SortedList_t list = lists[hash(elements[j].key)];
   	e = SortedList_lookup(&list, randstrings[j]);
   	if (e == NULL) {
   		fprintf(stderr, "ERROR: couldn't find added element\n");
@@ -75,17 +76,23 @@ void mlistOps(void *arg) {
 	int ret;
 
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
-  	pthread_mutex_lock(&lock);
+  	int index = hash(elements[j].key);
+  	SortedList_t list = lists[index];
+  	pthread_mutex_lock(&locks[index]);
   	SortedList_insert(&list, &elements[j]);
-  	pthread_mutex_unlock(&lock);
+  	pthread_mutex_unlock(&locks[index]);
   }
 
-  pthread_mutex_lock(&lock);
+  for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
+  	pthread_mutex_lock(&locks[hash(elements[j].key)]);
   int length = SortedList_length(&list);
-  pthread_mutex_unlock(&lock);
+  for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
+  	pthread_mutex_unlock(&locks[hash(elements[j].key)]);
 
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
-  	pthread_mutex_lock(&lock);
+  	int index = hash(elements[j].key);
+  	SortedList_t list = lists[index];
+  	pthread_mutex_lock(&locks[index]);
   	e = SortedList_lookup(&list, randstrings[j]);
   	if (e == NULL) {
   		fprintf(stderr, "ERROR: couldn't find added element\n");
@@ -96,7 +103,7 @@ void mlistOps(void *arg) {
   		fprintf(stderr, "ERROR: corrupt pointers for delete\n");
   		exit(1);
   	}
-  	pthread_mutex_unlock(&lock);
+  	pthread_mutex_unlock(&locks[index]);
   }
 }
 
@@ -108,17 +115,23 @@ void slistOps(void *arg) {
 	int ret;
 
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
-  	while(__sync_lock_test_and_set(&lock_m, 1));
+  	int index = hash(elements[j].key);
+  	SortedList_t list = lists[index)];
+  	while(__sync_lock_test_and_set(&lock_ms[index], 1));
   	SortedList_insert(&list, &elements[j]);
-  	__sync_lock_release(&lock_m);
+  	__sync_lock_release(&lock_ms[index]);
   }
-  	
-  while(__sync_lock_test_and_set(&lock_m, 1));
+  
+  for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
+  	while(__sync_lock_test_and_set(&lock_ms[j], 1));
   int length = SortedList_length(&list);
-  __sync_lock_release(&lock_m);
+  for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
+  	__sync_lock_release(&lock_ms[j]);
 
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
-  	while(__sync_lock_test_and_set(&lock_m, 1));
+  	int index = hash(elements[j].key);
+  	SortedList_t list = lists[index];
+  	while(__sync_lock_test_and_set(&lock_ms[index], 1));
   	e = SortedList_lookup(&list, randstrings[j]);
   	if (e == NULL) {
   		fprintf(stderr, "ERROR: couldn't find added element\n");
@@ -129,8 +142,17 @@ void slistOps(void *arg) {
   		fprintf(stderr, "ERROR: corrupt pointers for delete\n");
   		exit(1);
   	}
-  	__sync_lock_release(&lock_m);
+  	__sync_lock_release(&lock_ms[index]);
   }
+}
+
+// hash function converts key to index of the appropriate list
+int hash(char* key) {
+	int val = 0;
+	for (int i = 0; i < strlen(key); i++) {
+		val += (int) key[i];
+	}
+	return val % num_sublist;
 }
 
 int main(int argc, char **argv) {
@@ -146,6 +168,7 @@ int main(int argc, char **argv) {
 	int num_threads = 1;
 	int num_elements;
 	num_iter = 1;
+	num_sublists = 1;
 	char sync = 'n';
 	int operations;
 
@@ -164,6 +187,7 @@ int main(int argc, char **argv) {
         {"iterations",      optional_argument,  0,  'i' },
         {"yield",      optional_argument,  0,  'y' }, 
         {"sync",      optional_argument,  0,  's' }, 
+        {"list",      optional_argument,  0,  'l' }, 
         {0,             0,                  0,   0  } // error handling
     };
 
@@ -217,6 +241,18 @@ int main(int argc, char **argv) {
 	    	}
 	    	break;
 
+	    case 'l': //sub list
+	    	if (optarg != NULL) {
+	    		for (int k = 0; k < strlen(optarg); k++) {
+	    			if (!isdigit(optarg[k])) {
+	    				fprintf(stderr, "ERROR: invalid list option: %s\n", optarg);
+	    				exit(1);
+	    			}
+	    		}
+	    		num_sublists = atoi(optarg);
+	    	}
+	    	break;
+
 	    case '?': // ? returns when doesn't recognize option character
 	    default:
 	      fprintf(stderr, "ERROR: getopt returned character code 0%o \n", c);
@@ -233,12 +269,32 @@ int main(int argc, char **argv) {
   	exit(1);
   }
 
-  // Create and initialize list & elements
+
+  // Create and initialize lists & elements
   num_elements = num_threads*num_iter;
 
-  list.prev = &list;
-  list.next = &list;
-  list.key = NULL;
+  lists = malloc(num_sublists*sizeof(SortedList_t));
+  if (lists == NULL) {
+  	fprintf(stderr, "ERROR: unable to allocate memory\n");
+		exit(1);
+  }
+  for (int k = 0; k < num_sublists; k++) {
+  	list[k].prev = &list;
+  	list[k].next = &list;
+  	list[k].key = NULL;
+  }
+
+  locks = malloc(num_sublists*sizeof(pthread_mutex_t));
+  if (locks == NULL) {
+  	fprintf(stderr, "ERROR: unable to allocate memory\n");
+		exit(1);
+  }
+
+  lock_ms = malloc(num_sublists*sizeof(int));
+  if (lock_ms == NULL) {
+  	fprintf(stderr, "ERROR: unable to allocate memory\n");
+		exit(1);
+  }
 
   randstrings = malloc(num_elements*sizeof(char *));
   if (randstrings == NULL) {
@@ -316,6 +372,9 @@ int main(int argc, char **argv) {
 	free(randstrings);
 	free(threads);
 	free(elements);
+	free(lists);
+	free(locks);
+	free(lock_ms);
 	
   endTime = (long long)(end.tv_sec*pow(10, 9) + end.tv_nsec);
   startTime = (long long) (start.tv_sec*pow(10, 9) + start.tv_nsec);

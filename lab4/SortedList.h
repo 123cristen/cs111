@@ -118,22 +118,28 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key) {
  * Note: if (opt_yield & SEARCH_YIELD)
  *		call pthread_yield in middle of critical section
  */
-int SortedList_length(SortedList_t *list) {
-	int length = 0;
-	SortedListElement_t * n = list->next;
-	if (optyield & SEARCH_YIELD)
-		pthread_yield();
-	while(n != list) { // condition will also fail if the list is empty, conveniently
-		length++;
-		n = n->next;
+int SortedList_length(SortedList_t *lists) {
+	int totalLength = 0;
+	for (int i; i < num_sublists; i++) {
+		SortedList_t * list = &lists[i];
+		int length = 0;
+		SortedListElement_t * n = list->next;
+		if (optyield & SEARCH_YIELD)
+			pthread_yield();
+		while(n != list) { // condition will also fail if the list is empty, conveniently
+			length++;
+			n = n->next;
+		}
+		totalLength += length;
 	}
-	return length;
+	return totalLength;
 }
 
 /**
  * variable to enable diagnositc calls to pthread_yield
  */
 extern int opt_yield;
+extern int num_sublists;
 #define	INSERT_YIELD	0x01	// yield in insert critical section
 #define	DELETE_YIELD	0x02	// yield in delete critical section
 #define	SEARCH_YIELD	0x04	// yield in lookup/length critical section
