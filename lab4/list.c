@@ -109,7 +109,6 @@ void mlistOps(void *arg) {
   	}
   	pthread_mutex_unlock(&locks[index]);
   }
-  printf("Finish listOps\n");
 }
 
 void slistOps(void *arg) {
