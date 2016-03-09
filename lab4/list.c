@@ -366,8 +366,14 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "ERROR: clock_gettime\n");
 		exit(1);
 	}
+	
+  endTime = (long long)(end.tv_sec*pow(10, 9) + end.tv_nsec);
+  startTime = (long long) (start.tv_sec*pow(10, 9) + start.tv_nsec);
+  totalTime = endTime-startTime;
+  operations = num_threads*num_iter*50*2;
+  int finalLength = SortedList_length(lists);
 
-	for (int i = 0; i < num_elements; i++)
+  for (int i = 0; i < num_elements; i++)
 		free(randstrings[i]);
 	free(randstrings);
 	free(threads);
@@ -375,12 +381,6 @@ int main(int argc, char **argv) {
 	free(lists);
 	free(locks);
 	free(lock_ms);
-	
-  endTime = (long long)(end.tv_sec*pow(10, 9) + end.tv_nsec);
-  startTime = (long long) (start.tv_sec*pow(10, 9) + start.tv_nsec);
-  totalTime = endTime-startTime;
-  operations = num_threads*num_iter*50*2;
-  int finalLength = SortedList_length(lists);
   
 
   // Print to stdout
