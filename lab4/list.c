@@ -58,9 +58,7 @@ void listOps(void *arg) {
   	int index = hash(elements[j].key);
   	SortedList_insert(&lists[index], &elements[j]);
   }
-  printf("Before length\n");
   int length = SortedList_length(lists);
-  printf("Before lookup/delete\n");
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	int index = hash(elements[j].key);
   	e = SortedList_lookup(&lists[index], randstrings[j]);
@@ -74,7 +72,6 @@ void listOps(void *arg) {
   		exit(1);
   	}
   }
-  printf("Finish listOps\n");
 }
 
 void mlistOps(void *arg) {
