@@ -50,19 +50,19 @@ void createElement(int index) {
 // Wrapper function for each thread to execute
 
 void listOps(void *arg) {
-	//fprintf(stderr, "enter listOps\n");
+	printf("Enter listOps\n");
 	int i = *(int *)arg;
 	free(arg);
 	SortedListElement_t* e;
 	int ret;
-
+	printf("Before insert\n");
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	SortedList_t list = lists[hash(elements[j].key)];
   	SortedList_insert(&list, &elements[j]);
   }
-  	
+  printf("Before length\n");
   int length = SortedList_length(lists);
-  
+  printf("Before lookup/delete\n");
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	SortedList_t list = lists[hash(elements[j].key)];
   	e = SortedList_lookup(&list, randstrings[j]);
@@ -76,6 +76,7 @@ void listOps(void *arg) {
   		exit(1);
   	}
   }
+  printf("Finish listOps\n");
 }
 
 void mlistOps(void *arg) {
@@ -322,6 +323,8 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
+	printf("Before threads\n");
+
   for (i = 0; i < num_threads; i++) {
   	int* arg = (int*)malloc(sizeof(int));
 		if (arg == NULL) { fprintf(stderr, "ERROR: malloc error\n"); exit(1); }
@@ -362,6 +365,7 @@ int main(int argc, char **argv) {
   		exit(1);
   	}
   }
+  printf("After threads\n");
 
   // Find end time for clock
   if (clock_gettime(CLOCK_MONOTONIC, &end) != 0) {
