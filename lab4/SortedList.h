@@ -42,14 +42,11 @@ extern int num_sublists;
 void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
 	SortedListElement_t * p = list;
 	SortedListElement_t * n = list->next;
-	printf("inside insert\n");
 	while(n != list) { // condition will also fail if the list is empty, conveniently
-		printf("inside while loop\n");
 		if (strcmp(element->key, n->key) <= 0)
 			break;
 		n = n->next;
 	}
-	printf("after while loop\n");
 	if (opt_yield & INSERT_YIELD)
 		pthread_yield();
 	p = n->prev;
@@ -132,7 +129,7 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key) {
  */
 int SortedList_length(SortedList_t *lists) {
 	int totalLength = 0;
-	for (int i; i < num_sublists; i++) {
+	for (int i = 0; i < num_sublists; i++) {
 		SortedList_t * list = &lists[i];
 		int length = 0;
 		SortedListElement_t * n = list->next;

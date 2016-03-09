@@ -50,12 +50,10 @@ void createElement(int index) {
 // Wrapper function for each thread to execute
 
 void listOps(void *arg) {
-	printf("Enter listOps\n");
 	int i = *(int *)arg;
 	free(arg);
 	SortedListElement_t* e;
 	int ret;
-	printf("Before insert\n");
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	int index = hash(elements[j].key);
   	SortedList_insert(&lists[index], &elements[j]);
@@ -277,17 +275,10 @@ int main(int argc, char **argv) {
   	fprintf(stderr, "ERROR: unable to allocate memory\n");
 		exit(1);
   }
-  printf("num_sublists = %d\n", num_sublists);
   for (int k = 0; k < num_sublists; k++) {
-  	printf("inside assignment loop\n");
   	lists[k].prev = &lists[k];
   	lists[k].next = &lists[k];
   	lists[k].key = NULL;
-  }
-
-  if (lists[0].next != &lists[0]) {
-  	printf("failed to assign next pointer\n");
-  	exit(1);
   }
 
   locks = malloc(num_sublists*sizeof(pthread_mutex_t));
