@@ -6,7 +6,7 @@
 #include <getopt.h>
 #include <pthread.h>
 #include <string.h>
-#include <cctype.h>
+#include <ctype.h>
 
 #include "SortedList.h"
 
