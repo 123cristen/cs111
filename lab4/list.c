@@ -382,7 +382,7 @@ int main(int argc, char **argv) {
   startTime = (long long) (start.tv_sec*pow(10, 9) + start.tv_nsec);
   totalTime = endTime-startTime;
   operations = num_threads*num_iter*50*2;
-  int finalLength = SortedList_length(&list);
+  int finalLength = SortedList_length(lists);
   
 
   // Print to stdout
