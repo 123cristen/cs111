@@ -57,7 +57,9 @@ void listOps(void *arg) {
 	int ret;
 	printf("Before insert\n");
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
-  	SortedList_t list = lists[hash(elements[j].key)];
+  	int index = hash(elements[j].key)
+  	printf("index: %d, elements[%d].key: %s\n", index, j, elements[j].key);
+  	SortedList_t list = lists[index];
   	SortedList_insert(&list, &elements[j]);
   }
   printf("Before length\n");
