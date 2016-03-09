@@ -287,6 +287,11 @@ int main(int argc, char **argv) {
   	list.key = NULL;
   }
 
+  if (lists[0].next != &lists[0]) {
+  	printf("failed to assign next pointer\n");
+  	exit(1);
+  }
+
   locks = malloc(num_sublists*sizeof(pthread_mutex_t));
   if (locks == NULL) {
   	fprintf(stderr, "ERROR: unable to allocate memory\n");
