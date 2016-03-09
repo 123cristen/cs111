@@ -22,7 +22,7 @@ static int * lock_ms;
 int opt_yield;
 
 // hash function converts key to index of the appropriate list
-int hash(char* key) {
+int hash(const char* key) {
 	int val = 0;
 	for (int i = 0; i < strlen(key); i++) {
 		val += (int) key[i];
@@ -176,9 +176,6 @@ int main(int argc, char **argv) {
 	int i; // iterator
 	int ret; // return value
 
-	// Initialize the mutex lock
-	pthread_mutex_init(&lock, NULL);
-
   // Parse and handle options
   while (1) {
     int option_index = 0;
@@ -280,9 +277,9 @@ int main(int argc, char **argv) {
 		exit(1);
   }
   for (int k = 0; k < num_sublists; k++) {
-  	list[k].prev = &list;
-  	list[k].next = &list;
-  	list[k].key = NULL;
+  	lists[k].prev = &list;
+  	lists[k].next = &list;
+  	lists[k].key = NULL;
   }
 
   locks = malloc(num_sublists*sizeof(pthread_mutex_t));
@@ -307,6 +304,10 @@ int main(int argc, char **argv) {
   	fprintf(stderr, "ERROR: unable to allocate memory\n");
 		exit(1);
   }
+
+  // Initialize the mutex locks
+	for (int i = 0; i < num_sublists; i++)
+		pthread_mutex_init(&locks[i], NULL);
 
   srand(time(NULL));
   for (int i = 0; i < num_elements; i++)
