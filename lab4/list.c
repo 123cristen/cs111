@@ -281,9 +281,10 @@ int main(int argc, char **argv) {
 		exit(1);
   }
   for (int k = 0; k < num_sublists; k++) {
-  	lists[k].prev = &lists[k];
-  	lists[k].next = &lists[k];
-  	lists[k].key = NULL;
+  	SortedList_t list = lists[k];
+  	list.prev = &list;
+  	list.next = &list;
+  	list.key = NULL;
   }
 
   locks = malloc(num_sublists*sizeof(pthread_mutex_t));
@@ -326,8 +327,6 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
-	printf("Before threads\n");
-
   for (i = 0; i < num_threads; i++) {
   	int* arg = (int*)malloc(sizeof(int));
 		if (arg == NULL) { fprintf(stderr, "ERROR: malloc error\n"); exit(1); }
@@ -368,7 +367,6 @@ int main(int argc, char **argv) {
   		exit(1);
   	}
   }
-  printf("After threads\n");
 
   // Find end time for clock
   if (clock_gettime(CLOCK_MONOTONIC, &end) != 0) {

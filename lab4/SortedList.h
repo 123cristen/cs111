@@ -42,11 +42,13 @@ extern int num_sublists;
 void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
 	SortedListElement_t * p = list;
 	SortedListElement_t * n = list->next;
+	printf("inside insert");
 	while(n != list) { // condition will also fail if the list is empty, conveniently
 		if (strcmp(element->key, n->key) <= 0)
 			break;
 		n = n->next;
 	}
+	printf("after while loop");
 	if (opt_yield & INSERT_YIELD)
 		pthread_yield();
 	p = n->prev;
