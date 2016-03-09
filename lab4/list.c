@@ -277,8 +277,8 @@ int main(int argc, char **argv) {
 		exit(1);
   }
   for (int k = 0; k < num_sublists; k++) {
-  	lists[k].prev = &list;
-  	lists[k].next = &list;
+  	lists[k].prev = &lists[k];
+  	lists[k].next = &lists[k];
   	lists[k].key = NULL;
   }
 
