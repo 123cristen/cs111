@@ -59,9 +59,7 @@ void listOps(void *arg) {
   	int index = hash(elements[j].key);
   	SortedList_insert(&lists[index], &elements[j]);
   }
-  printf("Before length\n");
   int length = SortedList_length(lists);
-  printf("Before lookup/delete\n");
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	int index = hash(elements[j].key);
   	e = SortedList_lookup(&lists[index], randstrings[j]);
@@ -75,7 +73,6 @@ void listOps(void *arg) {
   		exit(1);
   	}
   }
-  printf("End of listOps\n");
 }
 
 void mlistOps(void *arg) {
@@ -91,10 +88,12 @@ void mlistOps(void *arg) {
   	SortedList_insert(&lists[index], &elements[j]);
   	pthread_mutex_unlock(&locks[index]);
   }
-  printf("Before length\n");
+  printf("Before lock\n");
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
   	pthread_mutex_lock(&locks[hash(elements[j].key)]);
+  printf("Before length\n");
   int length = SortedList_length(lists);
+  printf("Before unlock\n");
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
   	pthread_mutex_unlock(&locks[hash(elements[j].key)]);
   printf("Before lookup/delete\n");
@@ -351,7 +350,6 @@ int main(int argc, char **argv) {
 	    	break;
   	}
   }
-  printf("Before thread joining\n");
 
   for (i = 0; i < num_threads; i++) {
   	ret = pthread_join(threads[i], NULL);
@@ -360,7 +358,6 @@ int main(int argc, char **argv) {
   		exit(1);
   	}
   }
-  printf("Before end stuff\n");
 
   // Find end time for clock
   if (clock_gettime(CLOCK_MONOTONIC, &end) != 0) {
