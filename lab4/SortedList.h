@@ -18,6 +18,15 @@ typedef struct SortedListElement SortedList_t;
 typedef struct SortedListElement SortedListElement_t;
 
 /**
+ * variable to enable diagnositc calls to pthread_yield
+ */
+extern int opt_yield;
+extern int num_sublists;
+#define	INSERT_YIELD	0x01	// yield in insert critical section
+#define	DELETE_YIELD	0x02	// yield in delete critical section
+#define	SEARCH_YIELD	0x04	// yield in lookup/length critical section
+
+/**
  * SortedList_insert ... insert an element into a sorted list
  *
  *	The specified element will be inserted in to
@@ -38,7 +47,7 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
 			break;
 		n = n->next;
 	}
-	if (optyield & INSERT_YIELD)
+	if (opt_yield & INSERT_YIELD)
 		pthread_yield();
 	p = n->prev;
 	element->prev = p;
@@ -66,7 +75,7 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element) {
 int SortedList_delete( SortedListElement_t *element) {
 	SortedListElement_t * n = element->next;
 	SortedListElement_t * p = element->prev;
-	if (optyield & DELETE_YIELD)
+	if (opt_yield & DELETE_YIELD)
 		pthread_yield();
 
 	if (n->prev != element)
@@ -96,7 +105,7 @@ int SortedList_delete( SortedListElement_t *element) {
  */
 SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key) {
 	SortedListElement_t * n = list->next;
-	if (optyield & SEARCH_YIELD)
+	if (opt_yield & SEARCH_YIELD)
 		pthread_yield();
 	while(n != list) { // condition will also fail if the list is empty, conveniently
 		if (strcmp(key, n->key) == 0)
@@ -124,7 +133,7 @@ int SortedList_length(SortedList_t *lists) {
 		SortedList_t * list = &lists[i];
 		int length = 0;
 		SortedListElement_t * n = list->next;
-		if (optyield & SEARCH_YIELD)
+		if (opt_yield & SEARCH_YIELD)
 			pthread_yield();
 		while(n != list) { // condition will also fail if the list is empty, conveniently
 			length++;
@@ -135,11 +144,3 @@ int SortedList_length(SortedList_t *lists) {
 	return totalLength;
 }
 
-/**
- * variable to enable diagnositc calls to pthread_yield
- */
-extern int opt_yield;
-extern int num_sublists;
-#define	INSERT_YIELD	0x01	// yield in insert critical section
-#define	DELETE_YIELD	0x02	// yield in delete critical section
-#define	SEARCH_YIELD	0x04	// yield in lookup/length critical section

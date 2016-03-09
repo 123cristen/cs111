@@ -6,6 +6,7 @@
 #include <getopt.h>
 #include <pthread.h>
 #include <string.h>
+#include <cctype.h>
 
 #include "SortedList.h"
 
@@ -16,9 +17,18 @@ int num_iter;
 int num_sublists;
 static pthread_mutex_t * locks;
 // spinlock
-volatile static int * lock_ms;
+static int * lock_ms;
 
 int opt_yield;
+
+// hash function converts key to index of the appropriate list
+int hash(char* key) {
+	int val = 0;
+	for (int i = 0; i < strlen(key); i++) {
+		val += (int) key[i];
+	}
+	return val % num_sublists;
+}
 
 void createElement(int index) {
 	// Generate random string of length from 1 to 100
@@ -85,7 +95,7 @@ void mlistOps(void *arg) {
 
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
   	pthread_mutex_lock(&locks[hash(elements[j].key)]);
-  int length = SortedList_length(&list);
+  int length = SortedList_length(lists);
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
   	pthread_mutex_unlock(&locks[hash(elements[j].key)]);
 
@@ -116,7 +126,7 @@ void slistOps(void *arg) {
 
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	int index = hash(elements[j].key);
-  	SortedList_t list = lists[index)];
+  	SortedList_t list = lists[index];
   	while(__sync_lock_test_and_set(&lock_ms[index], 1));
   	SortedList_insert(&list, &elements[j]);
   	__sync_lock_release(&lock_ms[index]);
@@ -124,7 +134,7 @@ void slistOps(void *arg) {
   
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
   	while(__sync_lock_test_and_set(&lock_ms[j], 1));
-  int length = SortedList_length(&list);
+  int length = SortedList_length(lists);
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
   	__sync_lock_release(&lock_ms[j]);
 
@@ -144,15 +154,6 @@ void slistOps(void *arg) {
   	}
   	__sync_lock_release(&lock_ms[index]);
   }
-}
-
-// hash function converts key to index of the appropriate list
-int hash(char* key) {
-	int val = 0;
-	for (int i = 0; i < strlen(key); i++) {
-		val += (int) key[i];
-	}
-	return val % num_sublist;
 }
 
 int main(int argc, char **argv) {
