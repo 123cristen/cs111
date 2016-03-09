@@ -81,22 +81,19 @@ void mlistOps(void *arg) {
 	free(arg);
 	SortedListElement_t* e;
 	int ret;
-	printf("Before insert\n");
+
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	int index = hash(elements[j].key);
   	pthread_mutex_lock(&locks[index]);
   	SortedList_insert(&lists[index], &elements[j]);
   	pthread_mutex_unlock(&locks[index]);
   }
-  printf("Before lock\n");
-  for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
-  	pthread_mutex_lock(&locks[hash(elements[j].key)]);
-  printf("Before length\n");
+  for (int j = 0; j < num_sublists; j++)
+  	pthread_mutex_lock(&locks[j]);
   int length = SortedList_length(lists);
-  printf("Before unlock\n");
-  for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
-  	pthread_mutex_unlock(&locks[hash(elements[j].key)]);
-  printf("Before lookup/delete\n");
+  for (int j = 0; j < num_sublists; j++)
+  	pthread_mutex_unlock(&locks[j]);
+
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	int index = hash(elements[j].key);
   	pthread_mutex_lock(&locks[index]);
@@ -129,10 +126,10 @@ void slistOps(void *arg) {
   	__sync_lock_release(&lock_ms[index]);
   }
   
-  for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
+  for (int j = 0; j < num_sublists; j++)
   	while(__sync_lock_test_and_set(&lock_ms[j], 1));
   int length = SortedList_length(lists);
-  for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
+  for (int j = 0; j < num_sublists; j++)
   	__sync_lock_release(&lock_ms[j]);
 
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
