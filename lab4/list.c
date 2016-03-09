@@ -75,6 +75,7 @@ void listOps(void *arg) {
   		exit(1);
   	}
   }
+  printf("End of listOps\n");
 }
 
 void mlistOps(void *arg) {
@@ -349,6 +350,7 @@ int main(int argc, char **argv) {
 	    	break;
   	}
   }
+  printf("Before thread joining\n");
 
   for (i = 0; i < num_threads; i++) {
   	ret = pthread_join(threads[i], NULL);
@@ -357,6 +359,7 @@ int main(int argc, char **argv) {
   		exit(1);
   	}
   }
+  printf("Before end stuff\n");
 
   // Find end time for clock
   if (clock_gettime(CLOCK_MONOTONIC, &end) != 0) {
