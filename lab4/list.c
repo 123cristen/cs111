@@ -58,17 +58,14 @@ void listOps(void *arg) {
 	printf("Before insert\n");
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	int index = hash(elements[j].key);
-  	printf("index: %d, elements[%d].key: %s\n", index, j, elements[j].key);
-  	SortedList_t list = lists[index];
-  	printf("&lists[%d]: %d, lists[%d].next: %d\n", index, &lists[index], index, lists[index].next);
-  	SortedList_insert(&list, &elements[j]);
+  	SortedList_insert(&lists[index], &elements[j]);
   }
   printf("Before length\n");
   int length = SortedList_length(lists);
   printf("Before lookup/delete\n");
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
-  	SortedList_t list = lists[hash(elements[j].key)];
-  	e = SortedList_lookup(&list, randstrings[j]);
+  	int index = hash(elements[j].key);
+  	e = SortedList_lookup(&lists[index], randstrings[j]);
   	if (e == NULL) {
   		fprintf(stderr, "ERROR: couldn't find added element\n");
   		exit(1);
