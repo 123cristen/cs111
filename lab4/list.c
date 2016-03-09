@@ -54,7 +54,7 @@ void listOps(void *arg) {
 	free(arg);
 	SortedListElement_t* e;
 	int ret;
-	printf("Before insert\n");
+	
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	int index = hash(elements[j].key);
   	SortedList_insert(&lists[index], &elements[j]);
@@ -84,20 +84,20 @@ void mlistOps(void *arg) {
 	free(arg);
 	SortedListElement_t* e;
 	int ret;
-
+	printf("Before insert\n");
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	int index = hash(elements[j].key);
   	pthread_mutex_lock(&locks[index]);
   	SortedList_insert(&lists[index], &elements[j]);
   	pthread_mutex_unlock(&locks[index]);
   }
-
+  printf("Before length\n");
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
   	pthread_mutex_lock(&locks[hash(elements[j].key)]);
   int length = SortedList_length(lists);
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++)
   	pthread_mutex_unlock(&locks[hash(elements[j].key)]);
-
+  printf("Before lookup/delete\n");
   for (int j = i*num_iter; j < (i*num_iter)+num_iter; j++) {
   	int index = hash(elements[j].key);
   	pthread_mutex_lock(&locks[index]);
@@ -113,6 +113,7 @@ void mlistOps(void *arg) {
   	}
   	pthread_mutex_unlock(&locks[index]);
   }
+  printf("Finish listOps\n");
 }
 
 void slistOps(void *arg) {
