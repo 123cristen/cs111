@@ -189,7 +189,7 @@ int main(int argc, char **argv) {
         {"iterations",      optional_argument,  0,  'i' },
         {"yield",      optional_argument,  0,  'y' }, 
         {"sync",      optional_argument,  0,  's' }, 
-        {"list",      optional_argument,  0,  'l' }, 
+        {"lists",      optional_argument,  0,  'l' }, 
         {0,             0,                  0,   0  } // error handling
     };
 
