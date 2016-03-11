@@ -3,8 +3,6 @@ Cristen Anderson <904400797>
 
 TODO: 
 Part 2 Questions 2.2, 2.3 and Graphs
-sublist code
-Part 3 Question 5
 
 Part 1:
 
@@ -153,7 +151,10 @@ in between pthread_mutex_unlock and pthread_cond_wait, which
 would meet pthread_cond_wait would loop forever as mentioned in
 answer 1). 
 
-5) 
+5) This cannot be done in a user-mode implementation of
+pthread_cond_wait, because it requires kernel actions in order
+to start watching the condition variable and unlocking the
+mutex in parallel. 
 
 
 
