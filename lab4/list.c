@@ -376,8 +376,7 @@ int main(int argc, char **argv) {
 	
   endTime = (long long)(end.tv_sec*pow(10, 9) + end.tv_nsec);
   startTime = (long long) (start.tv_sec*pow(10, 9) + start.tv_nsec);
-  threadTime = (long long) ((ethreads.tv_sec*pow(10, 9) + end.tv_nsec) - (sthreads.tv_sec*pow(10, 9) + start.tv_nsec));
-  printf("total: %lld, thread: %lld\n",endTime-startTime, threadTime);
+  threadTime = (long long) ((ethreads.tv_sec*pow(10, 9) + ethreads.tv_nsec) - (sthreads.tv_sec*pow(10, 9) + sthreads.tv_nsec));
   totalTime = endTime-startTime-threadTime;
   operations = num_elements*2 + num_threads;
   int finalLength = SortedList_length(lists);
