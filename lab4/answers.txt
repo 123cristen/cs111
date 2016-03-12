@@ -105,12 +105,23 @@ delete/lookup: ./sltest --iterations=10 --threads=10 --yield=id
 
 QUESTION 2.2
 
-1) 
+1) In part 2, the time per operation grows more slowly with
+number of threads than in part 1, for both the spinlock and
+the mutex. This could be do to the fact that the operations
+are different on a list vs. doing a summation. A list operation
+can take the size of the list to execute. 
 
 QUESTIONS 2.3
 
-1) 
-2)
+1) The mutex and the spinlock time per operation grows with the
+threads/list ratio. This is because there is one lock for every
+list, and threads will be more likely to have to wait for a lock
+if there is more threads for every list.
+2) This is a more interesting statistic to look at than number of
+threads because there is a different lock for every list, and by
+the pigeonhole principle if there are more threads than there are 
+lists, each thread is much more likely to have to wait for a lock
+of multiple lists.
 
 Part 3:
 
