@@ -364,8 +364,7 @@ int main(int argc, char **argv) {
   endTime = (long long)(end.tv_sec*pow(10, 9) + end.tv_nsec);
   startTime = (long long) (start.tv_sec*pow(10, 9) + start.tv_nsec);
   totalTime = endTime-startTime;
-  int avgLength = num_elements/num_sublists;
-  operations = num_elements*avgLength*2;
+  operations = num_elements*2 + num_threads;
   int finalLength = SortedList_length(lists);
 
   for (int i = 0; i < num_elements; i++)
@@ -379,8 +378,8 @@ int main(int argc, char **argv) {
   
 
   // Print to stdout
-  printf("%d threads x %d iterations x (insert + lookup/delete) x (%d avg len) = %d operations\n", 
-  								num_threads, num_iter, avgLength, operations);
+  printf("%d threads x (%d iterations x (insert + lookup/delete) + length) = %d operations\n", 
+  								num_threads, num_iter, operations);
   if (finalLength != 0)
   	fprintf(stderr, "ERROR: final length = %d\n", finalLength);
   printf("elapsed time: %lld ns\n", totalTime);
