@@ -152,6 +152,9 @@ int main(int argc, char **argv) {
 	// Declare time structures for holding time
 	struct timespec start;
 	struct timespec end;
+  struct timespec sthreads;
+  struct timespec ethreads;
+  long long threadTime;
 	long long startTime;
 	long long endTime;
 	long long totalTime;
@@ -314,6 +317,11 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
+  if (clock_gettime(CLOCK_MONOTONIC, &sthreads) != 0) {
+    fprintf(stderr, "ERROR: clock_gettime\n");
+    exit(1);
+  }
+
   for (i = 0; i < num_threads; i++) {
   	int* arg = (int*)malloc(sizeof(int));
 		if (arg == NULL) { fprintf(stderr, "ERROR: malloc error\n"); exit(1); }
@@ -347,6 +355,11 @@ int main(int argc, char **argv) {
   	}
   }
 
+  if (clock_gettime(CLOCK_MONOTONIC, &ethreads) != 0) {
+    fprintf(stderr, "ERROR: clock_gettime\n");
+    exit(1);
+  }
+
   for (i = 0; i < num_threads; i++) {
   	ret = pthread_join(threads[i], NULL);
   	if (ret != 0) {
@@ -363,7 +376,8 @@ int main(int argc, char **argv) {
 	
   endTime = (long long)(end.tv_sec*pow(10, 9) + end.tv_nsec);
   startTime = (long long) (start.tv_sec*pow(10, 9) + start.tv_nsec);
-  totalTime = endTime-startTime;
+  threadTime = (long long) ((ethreads.tv_sec*pow(10, 9) + end.tv_nsec) - (sthreads.tv_sec*pow(10, 9) + start.tv_nsec))
+  totalTime = endTime-startTime-threadTime;
   operations = num_elements*2 + num_threads;
   int finalLength = SortedList_length(lists);
 

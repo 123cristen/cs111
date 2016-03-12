@@ -96,6 +96,13 @@ when there are more iterations. We could correct for this effect
 by dividing the average time per operation by some value related
 to the size of the list.
 
+Demonstrating conflicts in the following areas was consistenly
+accomplished using the following options:
+insert: ./sltest --iterations=10 --threads=10 --yield=i
+delete: ./sltest --iterations=10 --threads=10 --yield=d
+insert/lookup: ./sltest --iterations=10 --threads=10 --yield=is
+delete/lookup: ./sltest --iterations=10 --threads=10 --yield=id
+
 QUESTION 2.2
 
 1) 
